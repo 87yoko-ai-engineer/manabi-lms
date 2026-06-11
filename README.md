@@ -10,6 +10,20 @@
 > 管理CRUD(講座/カリキュラム/受講者/割り当て)まで全機能がDB接続で動作し、
 > Vercel本番環境にデプロイ済み。
 
+## スクリーンショット
+
+| 受講者: 講座一覧 | 講座詳細 |
+|---|---|
+| ![講座一覧](docs/screenshots/student-home.png) | ![講座詳細](docs/screenshots/course-detail.png) |
+
+| 動画視聴・完了ボタン | 管理: 進捗ダッシュボード |
+|---|---|
+| ![動画視聴](docs/screenshots/unit-view.png) | ![ダッシュボード](docs/screenshots/admin-dashboard.png) |
+
+| ログイン | 管理: 講座割り当て |
+|---|---|
+| ![ログイン](docs/screenshots/login.png) | ![講座割り当て](docs/screenshots/enrollments.png) |
+
 ## 技術構成
 
 | 項目 | 採用技術 |
@@ -64,6 +78,77 @@ npm run dev
 
 その他: 公開期間外・受講期間外講座のロック表示(ERR-07/08)、右下のTweaksパネルで
 ブランドカラー・講座一覧レイアウト・余白密度を切り替え可能。
+
+## ER図
+
+「受講者 × 講座」の割り当ては Enrollment(受講期間つき)、「受講者 × ユニット」の完了は UnitProgress(完了日時つき)の中間テーブルで表現。修了率は UnitProgress から都度集計する(非正規化カラムを持たず整合性を優先)。
+
+```mermaid
+erDiagram
+    User ||--o{ Enrollment : "受講する"
+    Course ||--o{ Enrollment : "割り当てられる"
+    Course ||--o{ Chapter : "含む"
+    Chapter ||--o{ Unit : "含む"
+    User ||--o{ UnitProgress : "進捗を持つ"
+    Unit ||--o{ UnitProgress : "完了記録"
+
+    User {
+        string id PK
+        string email UK
+        string name
+        string passwordHash
+        Role role "admin | student"
+        boolean isActive
+        datetime createdAt
+    }
+
+    Course {
+        string id PK
+        string title
+        string description
+        string category
+        string tag "必須 | 任意"
+        string-array goals
+        datetime publishStart
+        datetime publishEnd
+        string accent "UI: テーマカラー"
+        datetime createdAt
+    }
+
+    Chapter {
+        string id PK
+        string courseId FK
+        string title
+        int sortOrder
+    }
+
+    Unit {
+        string id PK
+        string chapterId FK
+        string title
+        string youtubeVideoId
+        int estimatedMinutes
+        int sortOrder
+    }
+
+    Enrollment {
+        string id PK
+        string userId FK "複合ユニーク(userId, courseId)"
+        string courseId FK
+        datetime enrollStart
+        datetime enrollEnd
+        datetime createdAt
+    }
+
+    UnitProgress {
+        string id PK
+        string userId FK "複合ユニーク(userId, unitId)"
+        string unitId FK
+        datetime completedAt
+    }
+```
+
+削除時の整合性: Course → Chapter → Unit → UnitProgress / Enrollment はカスケード削除。受講者は物理削除せず `isActive=false` で無効化(進捗を履歴として保持)。
 
 ## 設計メモ
 
