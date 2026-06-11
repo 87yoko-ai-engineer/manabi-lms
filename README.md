@@ -156,7 +156,7 @@ erDiagram
 - `prisma/seed.ts` — `src/lib/data.ts` のデモデータを単一の真実としてDBへ投入(冪等)
 - `src/lib/dal.ts` — データアクセス層。セッション検証・なりすまし解決(httpOnly Cookie)・DTO組み立てをサーバー側で実施
 - `src/app/actions.ts` — Server Actions(完了トグル・なりすまし)。認可と期間チェックをサーバー側で必ず検証
-- `src/lib/access.ts` — 公開期間/受講期間判定・進捗率計算の純粋関数(Vitestでテスト)。デモ基準日 `NOW = 2026/06/10` 固定
+- `src/lib/access.ts` — 公開期間/受講期間判定・進捗率計算の純粋関数(Vitestでテスト)。判定は日本時間の実日付ベースで、開始日・終了日は当日を含む(※当初はデモ用に基準日を固定していたが、実運用に合わせて現在日時判定に変更)
 - `src/auth.ts` / `src/auth.config.ts` — Auth.js本体とedge対応共通設定の分離(proxyからPrismaを参照しないため)
 - Tweaksパネル(配色等)のみ意図的にlocalStorage(ユーザー個人のデザイン検討用設定のため)
 
