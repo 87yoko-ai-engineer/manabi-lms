@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Sans_JP, Zen_Kaku_Gothic_New, Outfit } from "next/font/google";
 import "./globals.css";
+import { SessionProvider } from "next-auth/react";
 import { AppProvider } from "@/components/providers/AppProvider";
 import { AppShell } from "@/components/shared/AppShell";
 
@@ -32,9 +33,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ja">
       <body className={`${notoSansJP.variable} ${zenKaku.variable} ${outfit.variable}`}>
-        <AppProvider>
-          <AppShell>{children}</AppShell>
-        </AppProvider>
+        <SessionProvider>
+          <AppProvider>
+            <AppShell>{children}</AppShell>
+          </AppProvider>
+        </SessionProvider>
       </body>
     </html>
   );

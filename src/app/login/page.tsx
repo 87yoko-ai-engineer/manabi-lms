@@ -1,32 +1,55 @@
 "use client";
 // ============================================================
-// Manabi LMS — ログイン画面 (AUTH-01相当のモック / ERR-01,02,03)
+// Manabi LMS — ログイン画面 (AUTH-01 / ERR-01,02,03)
+// Auth.js Credentials Provider でDB認証する。
 // ============================================================
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { signIn, getSession } from "next-auth/react";
 import { Icons } from "@/components/shared/Icons";
 import { Avatar } from "@/components/shared/ui";
-import { useApp } from "@/components/providers/AppProvider";
 import { USERS, User } from "@/lib/data";
 
+/** シードデータ共通のデモパスワード(prisma/seed.ts と一致) */
+const DEMO_PASSWORD = "demo-pass";
+
 export default function LoginPage() {
-  const { login } = useApp();
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
+    // ERR-03: 必須項目の未入力はフォーム送信前にバリデーション
     if (!email.trim()) { setErr("メールアドレスを入力してください"); return; }
     if (!pw) { setErr("パスワードを入力してください"); return; }
-    const u = USERS.find((x) => x.email === email.trim().toLowerCase());
-    if (!u) { setErr("メールアドレスまたはパスワードが正しくありません"); return; }
-    if (!u.isActive) { setErr("このアカウントは無効化されています。管理者にお問い合わせください"); return; }
-    login(u);
+
+    setBusy(true);
+    const res = await signIn("credentials", {
+      email: email.trim().toLowerCase(),
+      password: pw,
+      redirect: false,
+    });
+    setBusy(false);
+
+    if (res?.error) {
+      // ERR-02: 無効化アカウント / ERR-01: それ以外の認証失敗(意図的に曖昧化)
+      setErr(res.code === "inactive"
+        ? "このアカウントは無効化されています。管理者にお問い合わせください"
+        : "メールアドレスまたはパスワードが正しくありません");
+      return;
+    }
+    // ロール別のホームへ
+    const session = await getSession();
+    router.push(session?.user.role === "admin" ? "/admin" : "/");
+    router.refresh();
   }
 
   function quick(u: User) {
     setEmail(u.email);
-    setPw("demo-pass");
+    setPw(DEMO_PASSWORD);
     setErr("");
   }
 
@@ -61,7 +84,9 @@ export default function LoginPage() {
             <div className="fld-in"><Icons.lock size={18} /><input type="password" value={pw} onChange={(e) => { setPw(e.target.value); setErr(""); }} placeholder="••••••••" /></div>
           </label>
           {err && <div className="login-err"><Icons.x size={15} />{err}</div>}
-          <button className="btn-primary lg" type="submit">ログイン<Icons.arrowRight size={18} /></button>
+          <button className="btn-primary lg" type="submit" disabled={busy}>
+            {busy ? "認証中..." : <>ログイン<Icons.arrowRight size={18} /></>}
+          </button>
           <div className="login-demo">
             <span className="login-demo-label">デモアカウントで試す</span>
             <div className="login-demo-grid">

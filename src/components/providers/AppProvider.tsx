@@ -1,10 +1,12 @@
 "use client";
 // ============================================================
-// Manabi LMS — アプリ状態(モック認証・進捗・Tweaks)
-// バックエンド導入時: session → Auth.js、progress → Server Actions に置換。
+// Manabi LMS — アプリ状態
+// 認証: Auth.js セッション(本物)
+// 進捗・なりすまし・Tweaks: localStorage(Session 4〜9 でDBへ移行予定)
 // ============================================================
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import { USERS, INITIAL_PROGRESS, User } from "@/lib/data";
 
 export interface Tweaks {
@@ -22,7 +24,6 @@ interface AppState {
   progress: Record<string, Set<string>>;
   tweaks: Tweaks;
   hydrated: boolean;
-  login: (u: User) => void;
   logout: () => void;
   impersonate: (u: User) => void;
   stopImpersonate: () => void;
@@ -33,7 +34,7 @@ interface AppState {
 
 const AppContext = createContext<AppState | null>(null);
 
-const LS_KEY = "manabi-lms-state-v1";
+const LS_KEY = "manabi-lms-state-v2";
 const DEFAULT_TWEAKS: Tweaks = { accent: "#3B5BDB", layout: "row", density: "comfortable" };
 
 function initialProgress(): Record<string, Set<string>> {
@@ -42,14 +43,33 @@ function initialProgress(): Record<string, Set<string>> {
   return o;
 }
 
+/** Auth.jsセッションのユーザーを、UI用のUser型(initials/color付き)へ変換 */
+function toUiUser(id: string | undefined, name?: string | null, email?: string | null, role?: "admin" | "student"): User | null {
+  if (!id) return null;
+  const known = USERS.find((u) => u.id === id);
+  if (known) return known;
+  return {
+    id,
+    name: name ?? "",
+    email: email ?? "",
+    role: role ?? "student",
+    isActive: true,
+    initials: (name ?? "?").charAt(0),
+    color: "#3B5BDB",
+  };
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<User | null>(null);
+  const { data: authSession, status } = useSession();
   const [viewAs, setViewAs] = useState<User | null>(null);
   const [progress, setProgress] = useState<Record<string, Set<string>>>(initialProgress);
   const [tweaks, setTweaks] = useState<Tweaks>(DEFAULT_TWEAKS);
-  const [hydrated, setHydrated] = useState(false);
+  const [lsLoaded, setLsLoaded] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+
+  const session = toUiUser(authSession?.user?.id, authSession?.user?.name, authSession?.user?.email, authSession?.user?.role);
+  const hydrated = lsLoaded && status !== "loading";
 
   // ---- localStorage 復元(初回マウント時) ----
   useEffect(() => {
@@ -57,7 +77,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const raw = localStorage.getItem(LS_KEY);
       if (raw) {
         const s = JSON.parse(raw);
-        if (s.sessionId) setSession(USERS.find((u) => u.id === s.sessionId) ?? null);
         if (s.viewAsId) setViewAs(USERS.find((u) => u.id === s.viewAsId) ?? null);
         if (s.progress) {
           const p: Record<string, Set<string>> = initialProgress();
@@ -69,20 +88,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // 壊れた保存データは無視して初期状態で開始
     }
-    setHydrated(true);
+    setLsLoaded(true);
   }, []);
 
   // ---- localStorage 保存 ----
   useEffect(() => {
-    if (!hydrated) return;
+    if (!lsLoaded) return;
     const serial = {
-      sessionId: session?.id ?? null,
       viewAsId: viewAs?.id ?? null,
       progress: Object.fromEntries(Object.entries(progress).map(([k, v]) => [k, [...v]])),
       tweaks,
     };
     localStorage.setItem(LS_KEY, JSON.stringify(serial));
-  }, [hydrated, session, viewAs, progress, tweaks]);
+  }, [lsLoaded, viewAs, progress, tweaks]);
 
   // ---- Tweaks をドキュメントに反映 ----
   useEffect(() => {
@@ -92,23 +110,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.dataset.density = tweaks.density;
   }, [tweaks.density]);
 
-  // ---- アクセス制御(AUTH-04 のクライアント側仮実装) ----
+  // ---- なりすましの整合性: 管理者以外のセッションでは無効 ----
   useEffect(() => {
-    if (!hydrated) return;
+    if (hydrated && viewAs && session?.role !== "admin") setViewAs(null);
+  }, [hydrated, viewAs, session?.role]);
+
+  // ---- 画面振り分け(認可はmiddlewareが担当。ここはUX用のルーティングのみ) ----
+  // 管理者本人(なりすまし中でない)が受講者画面を開いたら管理画面へ
+  useEffect(() => {
+    if (!hydrated || !session) return;
+    const adminActing = session.role === "admin" && !viewAs;
+    const isAdminArea = pathname.startsWith("/admin");
     const isLogin = pathname === "/login";
-    if (!session && !isLogin) {
-      router.replace("/login");
-      return;
-    }
-    if (session && isLogin) {
-      router.replace(session.role === "admin" ? "/admin" : "/");
-      return;
-    }
-    const adminArea = pathname.startsWith("/admin");
-    const adminActing = session?.role === "admin" && !viewAs;
-    if (session && adminArea && !adminActing) router.replace("/");
-    // 管理者本人(なりすまし中でない)が受講者画面を見たら管理画面へ
-    if (session && !adminArea && !isLogin && adminActing) router.replace("/admin");
+    if (adminActing && !isAdminArea && !isLogin) router.replace("/admin");
   }, [hydrated, session, viewAs, pathname, router]);
 
   const actingUser = viewAs ?? session;
@@ -131,15 +145,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }
 
-  function login(u: User) {
-    setSession(u);
-    setViewAs(null);
-    router.push(u.role === "admin" ? "/admin" : "/");
-  }
   function logout() {
-    setSession(null);
     setViewAs(null);
-    router.push("/login");
+    signOut({ redirectTo: "/login" });
   }
   function impersonate(u: User) {
     setViewAs(u);
@@ -153,7 +161,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   return (
     <AppContext.Provider
       value={{ session, viewAs, actingUser, adminMode, progress, tweaks, hydrated,
-        login, logout, impersonate, stopImpersonate, toggleUnit, progressOf, setTweaks }}
+        logout, impersonate, stopImpersonate, toggleUnit, progressOf, setTweaks }}
     >
       {children}
     </AppContext.Provider>

@@ -1,0 +1,103 @@
+// ============================================================
+// Manabi LMS — Prisma スキーマ(要件定義書 §7 ER図準拠)
+// - Enrollment(userId, courseId) / UnitProgress(userId, unitId) に複合ユニーク制約
+// - 削除時のカスケード方針は §4.5「データ削除時の整合性」に従う
+// - 受講者は物理削除せず isActive=false で無効化(進捗を履歴として保持)
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  student
+}
+
+model User {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  name         String
+  passwordHash String
+  role         Role           @default(student)
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  enrollments  Enrollment[]
+  progress     UnitProgress[]
+}
+
+model Course {
+  id           String       @id @default(cuid())
+  title        String
+  subtitle     String       @default("")
+  description  String       @default("")
+  category     String       @default("")
+  tag          String       @default("任意") // 必須 / 任意
+  goals        String[]     @default([])
+  publishStart DateTime
+  publishEnd   DateTime
+  // UI表示用(カバーグラデーション・アクセント色・カバーラベル)
+  accent       String       @default("#3B5BDB")
+  cover        String       @default("")
+  coverLabel   String       @default("")
+  createdAt    DateTime     @default(now())
+  chapters     Chapter[]
+  enrollments  Enrollment[]
+}
+
+model Chapter {
+  id        String @id @default(cuid())
+  courseId  String
+  title     String
+  sortOrder Int    @default(0)
+  course    Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  units     Unit[]
+
+  @@index([courseId])
+}
+
+model Unit {
+  id               String         @id @default(cuid())
+  chapterId        String
+  title            String
+  youtubeVideoId   String
+  estimatedMinutes Int            @default(0)
+  sortOrder        Int            @default(0)
+  chapter          Chapter        @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  progress         UnitProgress[]
+
+  @@index([chapterId])
+}
+
+model Enrollment {
+  id          String   @id @default(cuid())
+  userId      String
+  courseId    String
+  enrollStart DateTime
+  enrollEnd   DateTime
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  // 同一講座の二重割り当て防止
+  @@unique([userId, courseId])
+  @@index([courseId])
+}
+
+model UnitProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  unitId      String
+  completedAt DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  unit        Unit     @relation(fields: [unitId], references: [id], onDelete: Cascade)
+
+  // 二重完了記録防止
+  @@unique([userId, unitId])
+  @@index([unitId])
+}
