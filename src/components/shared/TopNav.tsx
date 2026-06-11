@@ -33,6 +33,17 @@ export function TopNav({ user, adminMode }: { user: UiUser; adminMode: boolean }
   const pathname = usePathname();
   const router = useRouter();
   const [signingOut, setSigningOut] = React.useState(false);
+  // ナビゲーション中のボタンにスピナーを出すための状態
+  const [navPending, startNav] = React.useTransition();
+  const [clickedKey, setClickedKey] = React.useState<string | null>(null);
+  React.useEffect(() => {
+    if (!navPending) setClickedKey(null); // 遷移が終わったらスピナーを消す
+  }, [navPending]);
+
+  function go(key: string, href: string) {
+    setClickedKey(key);
+    startNav(() => router.push(href));
+  }
 
   const items = adminMode ? ADMIN_ITEMS : STUDENT_ITEMS;
   const activeKey = adminMode
@@ -44,19 +55,24 @@ export function TopNav({ user, adminMode }: { user: UiUser; adminMode: boolean }
   return (
     <header className="topnav">
       <div className="topnav-inner">
-        <div className="brand" onClick={() => router.push(adminMode ? "/admin" : "/")}>
-          <span className="brand-mark"><Icons.layers size={20} /></span>
+        <div className="brand" onClick={() => go("brand", adminMode ? "/admin" : "/")}>
+          <span className="brand-mark">
+            {clickedKey === "brand" && navPending ? <span className="spinner" style={{ color: "#fff" }} /> : <Icons.layers size={20} />}
+          </span>
           <span className="brand-word">Manabi<span className="brand-dot">.</span></span>
           {adminMode && <span className="brand-admin">ADMIN</span>}
         </div>
         <nav className="topnav-links">
-          {items.map((it) => (
-            <button key={it.key} className={"navlink" + (activeKey === it.key ? " is-active" : "")} onClick={() => router.push(it.href)}>
-              <it.icon size={20} />
-              <span>{it.label}</span>
-              {it.badge && <span className="nav-badge">{it.badge}</span>}
-            </button>
-          ))}
+          {items.map((it) => {
+            const busy = clickedKey === it.key && navPending;
+            return (
+              <button key={it.key} className={"navlink" + (activeKey === it.key ? " is-active" : "")} disabled={navPending} onClick={() => go(it.key, it.href)}>
+                {busy ? <span className="spinner" style={{ width: 18, height: 18 }} /> : <it.icon size={20} />}
+                <span>{it.label}</span>
+                {it.badge && <span className="nav-badge">{it.badge}</span>}
+              </button>
+            );
+          })}
         </nav>
         <div className="topnav-right">
           <div className="topnav-user">
