@@ -3,10 +3,12 @@
 転職ポートフォリオ用の動画学習プラットフォーム(LMS)デモアプリケーション。
 企業研修向けに「管理者が講座を割り当て、受講者がYouTube動画で学習し、進捗を記録する」流れを実装する。
 
-> **現在のフェーズ: コア機能実装済み(チェックリスト Session 1〜6 完了)**
+**🌐 公開URL: https://manabi-lms.vercel.app**
+
+> **ステータス: MVP完成(チェックリスト Session 1〜10 完了)**
 > 認証(Auth.js + bcrypt)・DB(Neon + Prisma)・進捗記録(Server Actions)・
-> 受講者/管理者の全画面がデータベース接続で動作する。
-> 残り: 管理CRUDの実体化(Session 7〜9)・Vercelデプロイ(Session 10)。
+> 管理CRUD(講座/カリキュラム/受講者/割り当て)まで全機能がDB接続で動作し、
+> Vercel本番環境にデプロイ済み。
 
 ## 技術構成
 
@@ -20,7 +22,7 @@
 | フォント | Noto Sans JP / Zen Kaku Gothic New / Outfit (`next/font/google`) |
 | 動画 | YouTube 埋め込み(youtube-nocookie.com) |
 | テスト | Vitest(進捗集計・期間判定ロジック) |
-| 今後導入予定 | Vercel(本番デプロイ) |
+| ホスティング | Vercel(本番: Neon `main` ブランチ / ローカル開発: `development` ブランチ) |
 
 ## 起動方法
 
