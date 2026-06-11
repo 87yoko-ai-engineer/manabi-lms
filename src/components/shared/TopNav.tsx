@@ -32,6 +32,7 @@ const STUDENT_ITEMS: NavItem[] = [
 export function TopNav({ user, adminMode }: { user: UiUser; adminMode: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [signingOut, setSigningOut] = React.useState(false);
 
   const items = adminMode ? ADMIN_ITEMS : STUDENT_ITEMS;
   const activeKey = adminMode
@@ -65,8 +66,9 @@ export function TopNav({ user, adminMode }: { user: UiUser; adminMode: boolean }
               <span className="tu-role">{user.role === "admin" ? "管理者" : "受講者"}</span>
             </div>
           </div>
-          <button className="icon-btn" title="ログアウト" onClick={() => signOut({ redirectTo: "/login" })}>
-            <Icons.logout size={19} />
+          <button className="icon-btn" title="ログアウト" disabled={signingOut}
+            onClick={() => { setSigningOut(true); signOut({ redirectTo: "/login" }); }}>
+            {signingOut ? <span className="spinner" /> : <Icons.logout size={19} />}
           </button>
         </div>
       </div>

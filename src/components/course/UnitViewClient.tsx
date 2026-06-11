@@ -69,7 +69,7 @@ export function UnitViewClient({ data }: { data: UnitViewDTO }) {
                 {locked
                   ? <><Icons.lock size={18} />{access.label}のため完了できません</>
                   : pending
-                    ? "保存中..."
+                    ? <><span className="spinner" />保存中…</>
                     : done
                       ? <><Icons.checkCircle size={20} />完了済み(取り消す)</>
                       : <><Icons.check size={20} />このユニットを完了にする</>}

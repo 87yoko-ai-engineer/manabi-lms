@@ -8,11 +8,15 @@ export function ImpersonateButton({ studentId, variant = "matrix" }: { studentId
   const [pending, start] = useTransition();
   const onClick = () => start(() => impersonateStudent(studentId));
   if (variant === "link") {
-    return <button className="link-btn" disabled={pending} onClick={onClick}>受講画面</button>;
+    return (
+      <button className="link-btn" disabled={pending} onClick={onClick}>
+        {pending ? <><span className="spinner sm" /> 切替中…</> : "受講画面"}
+      </button>
+    );
   }
   return (
     <button className="mx-imp" disabled={pending} onClick={onClick} title="この受講者として表示">
-      受講画面 <Icons.arrowRight size={14} />
+      {pending ? <><span className="spinner sm" /> 切替中…</> : <>受講画面 <Icons.arrowRight size={14} /></>}
     </button>
   );
 }

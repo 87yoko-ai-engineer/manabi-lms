@@ -10,7 +10,7 @@ export function ImpersonationBanner({ name }: { name: string }) {
     <div className="imp-banner">
       <span><Icons.users size={16} /><b>{name}</b> として受講画面を表示中</span>
       <button disabled={pending} onClick={() => start(() => stopImpersonation())}>
-        管理画面に戻る <Icons.arrowRight size={15} />
+        {pending ? <><span className="spinner sm" /> 戻っています…</> : <>管理画面に戻る <Icons.arrowRight size={15} /></>}
       </button>
     </div>
   );

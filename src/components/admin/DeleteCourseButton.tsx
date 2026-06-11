@@ -11,7 +11,7 @@ export function DeleteCourseButton({ courseId, title }: { courseId: string; titl
         start(() => deleteCourse(courseId).then(() => {}));
       }
     }}>
-      {pending ? "削除中..." : "削除"}
+      {pending ? <><span className="spinner sm" /> 削除中…</> : "削除"}
     </button>
   );
 }

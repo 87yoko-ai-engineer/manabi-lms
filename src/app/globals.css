@@ -454,6 +454,13 @@ svg{flex:none}
   .ed-unit,.ed-add{grid-template-columns:1fr}
 }
 
+/* ===================================================== LOADING / SPINNER */
+.spinner{display:inline-block;width:16px;height:16px;border:2.5px solid color-mix(in srgb,currentColor 25%,transparent);border-top-color:currentColor;border-radius:50%;animation:spin .7s linear infinite;flex:none;vertical-align:-2px}
+.spinner.sm{width:12px;height:12px;border-width:2px}
+.spinner.lg{width:38px;height:38px;border-width:3.5px;color:var(--brand)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.page-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:140px 0;color:var(--ink-3);font-size:13.5px;font-weight:600}
+
 /* ---------- responsive ---------- */
 @media(max-width:1080px){
   .home-grid{grid-template-columns:1fr}

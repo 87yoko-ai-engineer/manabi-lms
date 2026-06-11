@@ -113,7 +113,7 @@ export function CourseForm({ course }: { course?: AdminCourseEdit }) {
 
       <div className="form-foot">
         <button className="btn-primary" type="submit" disabled={pending}>
-          {pending ? "保存中..." : course ? <><Icons.check size={17} />基本情報を保存</> : <><Icons.plus size={17} />講座を作成</>}
+          {pending ? <><span className="spinner" />保存中…</> : course ? <><Icons.check size={17} />基本情報を保存</> : <><Icons.plus size={17} />講座を作成</>}
         </button>
         <button className="btn-ghost" type="button" disabled={pending} onClick={() => router.push("/admin/courses")}>
           キャンセル

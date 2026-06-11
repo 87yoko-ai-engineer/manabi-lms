@@ -85,7 +85,7 @@ export default function LoginPage() {
           </label>
           {err && <div className="login-err"><Icons.x size={15} />{err}</div>}
           <button className="btn-primary lg" type="submit" disabled={busy}>
-            {busy ? "認証中..." : <>ログイン<Icons.arrowRight size={18} /></>}
+            {busy ? <><span className="spinner" />認証中…</> : <>ログイン<Icons.arrowRight size={18} /></>}
           </button>
           <div className="login-demo">
             <span className="login-demo-label">デモアカウントで試す</span>
