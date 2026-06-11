@@ -398,6 +398,52 @@ svg{flex:none}
 .demo-acct.is-off{opacity:.6}
 .demo-acct.is-off .da-role{background:#FFF0F0;color:#C92A2A}
 
+/* ===================================================== ADMIN FORMS */
+.aform-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 22px}
+.aform-grid .span-2{grid-column:span 2}
+.fld-in textarea{flex:1;border:none;background:none;outline:none;padding:12px 0;font-size:14px;color:var(--ink);resize:vertical;min-height:88px;font-family:inherit;line-height:1.6}
+.fld-in select{flex:1;border:none;background:none;outline:none;padding:12px 0;font-size:14.5px;color:var(--ink);font-family:inherit}
+.fld-in input[type="date"]{color-scheme:light}
+.form-foot{display:flex;align-items:center;gap:14px;margin-top:8px;flex-wrap:wrap}
+.form-err{display:flex;align-items:center;gap:7px;color:#C92A2A;background:#FFF0F0;border-radius:8px;padding:9px 13px;font-size:13px;font-weight:600}
+.form-ok{display:flex;align-items:center;gap:7px;color:#0CA678;background:#E6FCF5;border-radius:8px;padding:9px 13px;font-size:13px;font-weight:600}
+.sw-row{display:flex;gap:9px;align-items:center;padding:6px 0 12px}
+.cover-preview{width:64px;height:64px;border-radius:12px;display:grid;place-items:center;color:#fff;font-family:var(--num);font-weight:800;font-size:18px;flex:none}
+
+/* カリキュラムエディタ */
+.ed-chapter{border:1px solid var(--line);border-radius:var(--r-sm);margin-bottom:14px;overflow:hidden}
+.ed-chapter-head{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--soft);border-bottom:1px solid var(--line-2)}
+.ed-chapter-head .fld-in{flex:1;background:#fff}
+.ed-units{padding:8px 14px 12px}
+.ed-unit{display:grid;grid-template-columns:1fr 170px 90px auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line-2)}
+.ed-unit:last-child{border-bottom:none}
+.ed-unit .fld-in{background:var(--soft)}
+.ed-unit .fld-in input{padding:8px 0;font-size:13px}
+.ed-add{display:grid;grid-template-columns:1fr 170px 90px auto;gap:8px;align-items:center;margin-top:10px;padding-top:12px;border-top:1px solid var(--line-2)}
+.ed-add .fld-in{background:var(--soft)}
+.ed-add .fld-in input{padding:8px 0;font-size:13px}
+.ed-row-btns{display:flex;gap:2px;align-items:center}
+.ed-ibtn{width:30px;height:30px;display:grid;place-items:center;border-radius:8px;color:var(--ink-3);transition:.13s;flex:none}
+.ed-ibtn:hover{background:var(--line-2);color:var(--ink)}
+.ed-ibtn.danger:hover{background:#FFF0F0;color:#C92A2A}
+.ed-ibtn:disabled{opacity:.3;cursor:not-allowed}
+.ed-add-chapter{display:flex;gap:10px;margin-top:4px}
+.ed-add-chapter .fld-in{flex:1}
+.ed-hint{font-size:11.5px;color:var(--ink-4);margin-top:4px}
+
+/* 割り当てテーブル */
+.enr-row-dates{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.enr-date{display:flex;align-items:center;background:var(--soft);border:1.5px solid var(--line);border-radius:8px;padding:0 10px}
+.enr-date input{border:none;background:none;outline:none;padding:7px 0;font-size:12.5px;color:var(--ink);font-family:var(--num);color-scheme:light}
+.enr-unassigned{opacity:.65}
+.enr-unassigned:hover{opacity:1}
+
+@media(max-width:900px){
+  .aform-grid{grid-template-columns:1fr}
+  .aform-grid .span-2{grid-column:auto}
+  .ed-unit,.ed-add{grid-template-columns:1fr}
+}
+
 /* ---------- responsive ---------- */
 @media(max-width:1080px){
   .home-grid{grid-template-columns:1fr}

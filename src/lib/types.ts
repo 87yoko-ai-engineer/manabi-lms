@@ -134,3 +134,39 @@ export interface AdminStudentRow {
   enrollCount: number;
   range: string;
 }
+
+/** 講座編集フォーム用(日付は <input type="date"> 形式 "YYYY-MM-DD") */
+export interface AdminCourseEdit {
+  id: string;
+  title: string;
+  subtitle: string;
+  category: string;
+  tag: string;
+  description: string;
+  goals: string[];
+  publishStart: string;
+  publishEnd: string;
+  accent: string;
+  coverLabel: string;
+  chapters: {
+    id: string;
+    title: string;
+    units: { id: string; title: string; youtubeVideoId: string; estimatedMinutes: number }[];
+  }[];
+}
+
+/** 講座割り当て画面用 */
+export interface EnrollmentEditorData {
+  student: UiUser;
+  rows: {
+    courseId: string;
+    title: string;
+    coverLabel: string;
+    cover: string;
+    category: string;
+    publishRange: string;
+    /** 割当済みなら "YYYY-MM-DD"、未割当なら null */
+    enrollStart: string | null;
+    enrollEnd: string | null;
+  }[];
+}

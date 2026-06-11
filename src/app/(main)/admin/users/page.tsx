@@ -2,6 +2,7 @@
 // Manabi LMS — 受講者管理 (ADM-03,04) (Server Component)
 // ※発行・編集・割当の実体化は Session 8 で対応
 // ============================================================
+import Link from "next/link";
 import { Breadcrumb, Avatar } from "@/components/shared/ui";
 import { Icons } from "@/components/shared/Icons";
 import { ImpersonateButton } from "@/components/admin/ImpersonateButton";
@@ -15,7 +16,7 @@ export default async function AdminUsersPage() {
       <Breadcrumb items={[{ label: "管理" }, { label: "受講者管理" }]} />
       <div className="adm-head">
         <div><h1 className="adm-title">受講者管理</h1><p className="adm-sub">アカウントの発行・編集・無効化、講座の割り当て</p></div>
-        <button className="btn-primary"><Icons.plus size={17} />受講者を発行</button>
+        <Link className="btn-primary" href="/admin/users/new"><Icons.plus size={17} />受講者を発行</Link>
       </div>
       <section className="panel">
         <div className="panel-head"><Icons.users size={19} /><h2>受講者一覧</h2><span className="count-badge">{students.length}名</span></div>
@@ -35,8 +36,8 @@ export default async function AdminUsersPage() {
                 <td><span className="enr-badge">{enrollCount} 講座</span></td>
                 <td className="at-dim">{range}</td>
                 <td className="at-actions">
-                  <button className="link-btn">編集</button>
-                  <button className="link-btn">割当</button>
+                  <Link className="link-btn" href={`/admin/users/${user.id}`}>編集</Link>
+                  <Link className="link-btn" href={`/admin/users/${user.id}/enrollments`}>割当</Link>
                   {user.isActive && <ImpersonateButton studentId={user.id} variant="link" />}
                 </td>
               </tr>

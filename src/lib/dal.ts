@@ -13,6 +13,7 @@ import { USERS } from "@/lib/data";
 import type {
   UiUser, CourseListItem, CourseDetailDTO, UnitViewDTO,
   AdminDashboardDTO, AdminCourseRow, AdminStudentRow,
+  AdminCourseEdit, EnrollmentEditorData,
 } from "@/lib/types";
 
 export const VIEW_AS_COOKIE = "viewAs";
@@ -293,6 +294,81 @@ export async function getAdminCourses(): Promise<AdminCourseRow[]> {
       publishEnd: fmtDate(c.publishEnd),
     };
   });
+}
+
+/** Date → <input type="date"> 用 "YYYY-MM-DD" */
+function toDateInput(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+/** ADM-01,02: 講座編集フォーム用の完全な講座データ */
+export async function getAdminCourseEdit(courseId: string): Promise<AdminCourseEdit | null> {
+  const c = await prisma.course.findUnique({
+    where: { id: courseId },
+    include: {
+      chapters: {
+        orderBy: { sortOrder: "asc" },
+        include: { units: { orderBy: { sortOrder: "asc" } } },
+      },
+    },
+  });
+  if (!c) return null;
+  return {
+    id: c.id,
+    title: c.title,
+    subtitle: c.subtitle,
+    category: c.category,
+    tag: c.tag,
+    description: c.description,
+    goals: c.goals,
+    publishStart: toDateInput(c.publishStart),
+    publishEnd: toDateInput(c.publishEnd),
+    accent: c.accent,
+    coverLabel: c.coverLabel,
+    chapters: c.chapters.map((ch) => ({
+      id: ch.id,
+      title: ch.title,
+      units: ch.units.map((u) => ({
+        id: u.id,
+        title: u.title,
+        youtubeVideoId: u.youtubeVideoId,
+        estimatedMinutes: u.estimatedMinutes,
+      })),
+    })),
+  };
+}
+
+/** ADM-03: 受講者編集フォーム用 */
+export async function getStudentForEdit(userId: string): Promise<UiUser | null> {
+  const u = await prisma.user.findUnique({ where: { id: userId } });
+  if (!u || u.role !== "student") return null;
+  return toUiUser(u);
+}
+
+/** ADM-04: 講座割り当て画面用(全講座 × 割当状態) */
+export async function getEnrollmentEditor(userId: string): Promise<EnrollmentEditorData | null> {
+  const student = await getStudentForEdit(userId);
+  if (!student) return null;
+  const [courses, enrollments] = await Promise.all([
+    prisma.course.findMany({ orderBy: { createdAt: "asc" } }),
+    prisma.enrollment.findMany({ where: { userId } }),
+  ]);
+  return {
+    student,
+    rows: courses.map((c) => {
+      const en = enrollments.find((e) => e.courseId === c.id);
+      return {
+        courseId: c.id,
+        title: c.title,
+        coverLabel: c.coverLabel,
+        cover: c.cover,
+        category: c.category,
+        publishRange: `${fmtDate(c.publishStart)} 〜 ${fmtDate(c.publishEnd)}`,
+        enrollStart: en ? toDateInput(en.enrollStart) : null,
+        enrollEnd: en ? toDateInput(en.enrollEnd) : null,
+      };
+    }),
+  };
 }
 
 /** ADM-03: 受講者管理一覧 */
