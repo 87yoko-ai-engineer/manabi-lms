@@ -73,6 +73,9 @@ export function UserForm({ user }: { user?: UiUser }) {
         <button className="btn-primary" type="submit" disabled={pending}>
           {pending ? "保存中..." : user ? <><Icons.check size={17} />保存</> : <><Icons.plus size={17} />受講者を発行</>}
         </button>
+        <button className="btn-ghost" type="button" disabled={pending} onClick={() => router.push("/admin/users")}>
+          キャンセル
+        </button>
         {err && <div className="form-err"><Icons.x size={15} />{err}</div>}
         {saved && <div className="form-ok"><Icons.checkCircle size={15} />保存しました</div>}
       </div>
