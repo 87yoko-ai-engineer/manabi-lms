@@ -165,6 +165,9 @@ export interface EnrollmentEditorData {
     cover: string;
     category: string;
     publishRange: string;
+    /** 公開期間("YYYY-MM-DD"。受講期間との整合チェック用) */
+    publishStart: string;
+    publishEnd: string;
     /** 割当済みなら "YYYY-MM-DD"、未割当なら null */
     enrollStart: string | null;
     enrollEnd: string | null;

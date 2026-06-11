@@ -5,6 +5,7 @@
 // 二重割り当ては複合ユニーク制約 + upsert で防止。
 // ============================================================
 import React, { useState, useTransition } from "react";
+import Link from "next/link";
 import { Icons } from "@/components/shared/Icons";
 import { assignCourse, unassignCourse, ActionResult } from "@/app/admin-actions";
 import type { EnrollmentEditorData } from "@/lib/types";
@@ -50,6 +51,9 @@ function EnrollmentRow({ row, userId, run, pending }: {
   const [start, setStart] = useState(row.enrollStart ?? "");
   const [end, setEnd] = useState(row.enrollEnd ?? "");
   const dirty = assigned && (start !== row.enrollStart || end !== row.enrollEnd);
+  // 受講期間が公開期間からはみ出していないか("YYYY-MM-DD"形式は文字列比較で大小判定できる)
+  const mismatch =
+    (start && start < row.publishStart) || (end && end > row.publishEnd);
 
   return (
     <tr className={assigned ? "" : "enr-unassigned"}>
@@ -59,13 +63,22 @@ function EnrollmentRow({ row, userId, run, pending }: {
           <div><span className="at-title">{row.title}</span><span className="at-sub">{row.category}</span></div>
         </div>
       </td>
-      <td className="at-dim">{row.publishRange}</td>
+      <td className="at-dim">
+        <Link href={`/admin/courses/${row.courseId}`} className="crumb-link" title="公開期間は講座全体の設定です。クリックで講座編集ページへ移動します">
+          {row.publishRange}
+        </Link>
+      </td>
       <td>
         <div className="enr-row-dates">
           <span className="enr-date"><input type="date" value={start} onChange={(e) => setStart(e.target.value)} /></span>
           <span style={{ color: "var(--ink-4)" }}>〜</span>
           <span className="enr-date"><input type="date" value={end} onChange={(e) => setEnd(e.target.value)} /></span>
         </div>
+        {mismatch && (
+          <div style={{ marginTop: 6, fontSize: 11.5, fontWeight: 600, color: "#C92A2A", display: "flex", alignItems: "center", gap: 5 }}>
+            <Icons.lock size={12} />受講期間が公開期間の外にあります(その期間は視聴できません)
+          </div>
+        )}
       </td>
       <td className="at-actions">
         {assigned ? (

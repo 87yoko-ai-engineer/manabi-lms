@@ -364,6 +364,8 @@ export async function getEnrollmentEditor(userId: string): Promise<EnrollmentEdi
         cover: c.cover,
         category: c.category,
         publishRange: `${fmtDate(c.publishStart)} 〜 ${fmtDate(c.publishEnd)}`,
+        publishStart: toDateInput(c.publishStart),
+        publishEnd: toDateInput(c.publishEnd),
         enrollStart: en ? toDateInput(en.enrollStart) : null,
         enrollEnd: en ? toDateInput(en.enrollEnd) : null,
       };
