@@ -398,6 +398,16 @@ svg{flex:none}
 .demo-acct.is-off{opacity:.6}
 .demo-acct.is-off .da-role{background:#FFF0F0;color:#C92A2A}
 
+/* ===================================================== NEWS */
+.news-list{display:flex;flex-direction:column;gap:14px;max-width:760px}
+.news-item{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:20px var(--pad)}
+.news-meta{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.news-date{font-family:var(--num);font-weight:600;font-size:12.5px;color:var(--ink-4)}
+.news-tag{font-size:11px;font-weight:700;font-family:var(--hd);color:var(--brand);background:color-mix(in srgb,var(--brand) 9%,#fff);padding:2px 10px;border-radius:99px}
+.news-tag.is-warn{color:#B9740D;background:#FEF3DD}
+.news-title{font-size:16px;color:var(--ink);margin-bottom:6px}
+.news-body{font-size:13.5px;color:var(--ink-3);line-height:1.7}
+
 /* ===================================================== ADMIN FORMS */
 .aform-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 22px}
 .aform-grid .span-2{grid-column:span 2}

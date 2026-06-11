@@ -8,6 +8,7 @@ import { signOut } from "next-auth/react";
 import { Icons, IconProps } from "./Icons";
 import { Avatar } from "./ui";
 import type { UiUser } from "@/lib/types";
+import { NEWS_COUNT } from "@/lib/news";
 
 interface NavItem {
   key: string;
@@ -25,7 +26,7 @@ const ADMIN_ITEMS: NavItem[] = [
 const STUDENT_ITEMS: NavItem[] = [
   { key: "home", href: "/", label: "ホーム", icon: Icons.home },
   { key: "courses", href: "/", label: "講座", icon: Icons.book },
-  { key: "news", href: "/", label: "お知らせ", icon: Icons.bell, badge: 2 },
+  { key: "news", href: "/news", label: "お知らせ", icon: Icons.bell, badge: NEWS_COUNT },
 ];
 
 export function TopNav({ user, adminMode }: { user: UiUser; adminMode: boolean }) {
@@ -37,7 +38,7 @@ export function TopNav({ user, adminMode }: { user: UiUser; adminMode: boolean }
     ? pathname.startsWith("/admin/courses") ? "admin-courses"
       : pathname.startsWith("/admin/users") ? "admin-users"
       : "admin"
-    : "home";
+    : pathname.startsWith("/news") ? "news" : "home";
 
   return (
     <header className="topnav">
