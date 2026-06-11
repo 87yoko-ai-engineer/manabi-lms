@@ -1,12 +1,11 @@
-"use client";
 // ============================================================
 // Manabi LMS — 共有UI部品 (ProgressBar / StatusPill / Avatar / Breadcrumb)
+// フック不使用の純粋描画のため Server/Client 両方から利用可能
 // ============================================================
 import React from "react";
 import Link from "next/link";
 import { Icons } from "./Icons";
 import { statusOf } from "@/lib/access";
-import { User } from "@/lib/data";
 
 export function ProgressBar({ pct, height = 8 }: { pct: number; height?: number }) {
   const st = statusOf(pct);
@@ -28,7 +27,7 @@ export function StatusPill({ pct }: { pct: number }) {
   return <span className={"pill " + m.cls}>{m.label}</span>;
 }
 
-export function Avatar({ user, size = 34 }: { user: User; size?: number }) {
+export function Avatar({ user, size = 34 }: { user: { initials: string; color: string }; size?: number }) {
   return (
     <div className="avatar" style={{ width: size, height: size, background: user.color, fontSize: size * 0.42 }}>
       {user.initials}

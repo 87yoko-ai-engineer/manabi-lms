@@ -4,9 +4,10 @@
 // ============================================================
 import React from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { Icons, IconProps } from "./Icons";
 import { Avatar } from "./ui";
-import { useApp } from "@/components/providers/AppProvider";
+import type { UiUser } from "@/lib/types";
 
 interface NavItem {
   key: string;
@@ -27,11 +28,9 @@ const STUDENT_ITEMS: NavItem[] = [
   { key: "news", href: "/", label: "お知らせ", icon: Icons.bell, badge: 2 },
 ];
 
-export function TopNav() {
-  const { actingUser, adminMode, logout } = useApp();
+export function TopNav({ user, adminMode }: { user: UiUser; adminMode: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
-  if (!actingUser) return null;
 
   const items = adminMode ? ADMIN_ITEMS : STUDENT_ITEMS;
   const activeKey = adminMode
@@ -59,26 +58,17 @@ export function TopNav() {
         </nav>
         <div className="topnav-right">
           <div className="topnav-user">
-            <Avatar user={actingUser} size={32} />
+            <Avatar user={user} size={32} />
             <div className="topnav-user-meta">
-              <span className="tu-name">{actingUser.name}</span>
-              <span className="tu-role">{actingUser.role === "admin" ? "管理者" : "受講者"}</span>
+              <span className="tu-name">{user.name}</span>
+              <span className="tu-role">{user.role === "admin" ? "管理者" : "受講者"}</span>
             </div>
           </div>
-          <button className="icon-btn" title="ログアウト" onClick={logout}><Icons.logout size={19} /></button>
+          <button className="icon-btn" title="ログアウト" onClick={() => signOut({ redirectTo: "/login" })}>
+            <Icons.logout size={19} />
+          </button>
         </div>
       </div>
     </header>
-  );
-}
-
-export function ImpersonationBanner() {
-  const { viewAs, stopImpersonate } = useApp();
-  if (!viewAs) return null;
-  return (
-    <div className="imp-banner">
-      <span><Icons.users size={16} /><b>{viewAs.name}</b> として受講画面を表示中</span>
-      <button onClick={stopImpersonate}>管理画面に戻る <Icons.arrowRight size={15} /></button>
-    </div>
   );
 }

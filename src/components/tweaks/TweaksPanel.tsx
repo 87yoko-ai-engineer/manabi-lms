@@ -4,7 +4,7 @@
 // ============================================================
 import React, { useState } from "react";
 import { Icons } from "@/components/shared/Icons";
-import { useApp, Tweaks } from "@/components/providers/AppProvider";
+import { useTweaks, Tweaks } from "@/components/providers/TweaksProvider";
 
 const ACCENTS = [
   { v: "#3B5BDB", label: "インディゴ" },
@@ -15,7 +15,7 @@ const ACCENTS = [
 ];
 
 export function TweaksPanel() {
-  const { tweaks, setTweaks } = useApp();
+  const { tweaks, setTweaks } = useTweaks();
   const [open, setOpen] = useState(false);
 
   function set<K extends keyof Tweaks>(k: K, v: Tweaks[K]) {

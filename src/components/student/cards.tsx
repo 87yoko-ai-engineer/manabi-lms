@@ -5,13 +5,12 @@
 import React from "react";
 import { Icons } from "@/components/shared/Icons";
 import { ProgressBar, StatusPill } from "@/components/shared/ui";
-import { Access } from "@/lib/access";
-import { Course } from "@/lib/data";
+import type { CourseListItem } from "@/lib/types";
 
-export function SummaryCard({ courses, pctOf }: { courses: Course[]; pctOf: (c: Course) => number }) {
+export function SummaryCard({ courses }: { courses: CourseListItem[] }) {
   const total = courses.length;
-  const doneCount = courses.filter((c) => pctOf(c) >= 100).length;
-  const overall = total ? Math.round(courses.reduce((s, c) => s + pctOf(c), 0) / total) : 0;
+  const doneCount = courses.filter((c) => c.pct >= 100).length;
+  const overall = total ? Math.round(courses.reduce((s, c) => s + c.pct, 0) / total) : 0;
   return (
     <section className="summary">
       <div className="summary-head"><Icons.award size={20} /><h2>修了状況</h2></div>
@@ -30,37 +29,34 @@ export function SummaryCard({ courses, pctOf }: { courses: Course[]; pctOf: (c: 
   );
 }
 
-export function CourseCard({ course, pct, minutes, onOpen, layout, access }: {
-  course: Course;
-  pct: number;
-  minutes: number;
+export function CourseCard({ course, onOpen, layout }: {
+  course: CourseListItem;
   onOpen: () => void;
   layout: "row" | "card";
-  access: Access | null;
 }) {
-  const locked = access && !access.viewable;
+  const locked = !course.access.viewable;
   return (
     <article className={"ccard " + layout + (locked ? " is-locked" : "")} onClick={onOpen}>
       <div className="ccard-cover" style={{ background: course.cover }}>
         <span className="cover-label">{course.coverLabel}</span>
         <span className={"cover-tag " + (course.tag === "必須" ? "is-req" : "")}>{course.tag}</span>
-        {locked && <span className="cover-lock"><Icons.lock size={13} />{access.label}</span>}
+        {locked && <span className="cover-lock"><Icons.lock size={13} />{course.access.label}</span>}
       </div>
       <div className="ccard-body">
         <div className="ccard-top">
           <span className="ccard-cat">{course.category}</span>
-          {locked ? <span className="pill pill-lock"><Icons.lock size={12} />{access.label}</span> : <StatusPill pct={pct} />}
+          {locked ? <span className="pill pill-lock"><Icons.lock size={12} />{course.access.label}</span> : <StatusPill pct={course.pct} />}
         </div>
         <h3 className="ccard-title">{course.title}</h3>
         <p className="ccard-desc">{course.description}</p>
         <div className="ccard-meta">
-          <span><Icons.clock size={15} />約 {minutes} 分</span>
-          <span><Icons.layers size={15} />{course.chapters.length} チャプター</span>
+          <span><Icons.clock size={15} />約 {course.minutes} 分</span>
+          <span><Icons.layers size={15} />{course.chaptersCount} チャプター</span>
           <span className="ccard-period">{course.publishStart} 〜 {course.publishEnd}</span>
         </div>
         <div className="ccard-prog">
-          <div className="ccard-prog-row"><span>進捗</span><b>{pct}%</b></div>
-          <ProgressBar pct={pct} height={8} />
+          <div className="ccard-prog-row"><span>進捗</span><b>{course.pct}%</b></div>
+          <ProgressBar pct={course.pct} height={8} />
         </div>
       </div>
     </article>

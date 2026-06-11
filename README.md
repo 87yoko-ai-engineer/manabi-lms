@@ -3,33 +3,41 @@
 転職ポートフォリオ用の動画学習プラットフォーム(LMS)デモアプリケーション。
 企業研修向けに「管理者が講座を割り当て、受講者がYouTube動画で学習し、進捗を記録する」流れを実装する。
 
-> **現在のフェーズ: フロントエンド先行実装**
-> デザイン・UI・画面遷移・進捗インタラクションを Next.js で実装済み。
-> データベース(Prisma + Neon)・認証(Auth.js)は次フェーズで導入予定で、
-> 現在はシードデータ相当のモックデータ + localStorage で全画面が動作する。
+> **現在のフェーズ: コア機能実装済み(チェックリスト Session 1〜6 完了)**
+> 認証(Auth.js + bcrypt)・DB(Neon + Prisma)・進捗記録(Server Actions)・
+> 受講者/管理者の全画面がデータベース接続で動作する。
+> 残り: 管理CRUDの実体化(Session 7〜9)・Vercelデプロイ(Session 10)。
 
 ## 技術構成
 
 | 項目 | 採用技術 |
 |---|---|
-| フレームワーク | Next.js (App Router) / TypeScript / React 19 |
+| フレームワーク | Next.js (App Router) / TypeScript / React 19(Server Components + Server Actions) |
+| データベース | Neon (PostgreSQL 17)。`main`=本番 / `development`=開発でブランチ分離 |
+| ORM | Prisma v6(スキーマ = 設計ドキュメント、マイグレーション管理) |
+| 認証 | Auth.js v5 Credentials Provider + bcrypt。JWTにロール格納、proxy(旧middleware)でアクセス制御 |
 | スタイリング | グローバルCSS(デザイントークン + CSS変数。Claude Designプロトタイプから移植) |
 | フォント | Noto Sans JP / Zen Kaku Gothic New / Outfit (`next/font/google`) |
-| 状態管理 | React Context + localStorage(モック認証・進捗の永続化) |
 | 動画 | YouTube 埋め込み(youtube-nocookie.com) |
-| 今後導入予定 | Prisma + Neon (PostgreSQL) / Auth.js / Vercel |
+| テスト | Vitest(進捗集計・期間判定ロジック) |
+| 今後導入予定 | Vercel(本番デプロイ) |
 
 ## 起動方法
 
 ```bash
 npm install
+# .env に DATABASE_URL(Neon接続文字列)と AUTH_SECRET を設定
+npx prisma migrate dev   # テーブル作成
+npm run seed             # デモデータ投入(再実行可能)
 npm run dev
 # → http://localhost:3000
 ```
 
+テスト実行: `npm test`
+
 ## デモアカウント
 
-ログイン画面の「デモアカウントで試す」から選択可能(パスワードは任意の文字列でOK)。
+ログイン画面の「デモアカウントで試す」から選択可能(共通パスワード: `demo-pass`、ボタンで自動入力)。
 
 | アカウント | メール | 状態 |
 |---|---|---|
@@ -55,10 +63,14 @@ npm run dev
 その他: 公開期間外・受講期間外講座のロック表示(ERR-07/08)、右下のTweaksパネルで
 ブランドカラー・講座一覧レイアウト・余白密度を切り替え可能。
 
-## 設計メモ(バックエンド差し替えポイント)
+## 設計メモ
 
-- `src/lib/data.ts` — モックデータ層。型は要件定義書のER図(Prismaスキーマ予定)とフィールド名を一致させており、ここをPrismaクエリに差し替える
-- `src/lib/access.ts` — 公開期間/受講期間判定・進捗率計算(デモ基準日 `NOW = 2026/06/10` 固定)
-- `src/components/providers/AppProvider.tsx` — モック認証・進捗状態。Auth.js / Server Actions に置換予定
+- `prisma/schema.prisma` — ER図準拠の6テーブル。複合ユニーク制約(二重割当・二重完了防止)とカスケード削除方針
+- `prisma/seed.ts` — `src/lib/data.ts` のデモデータを単一の真実としてDBへ投入(冪等)
+- `src/lib/dal.ts` — データアクセス層。セッション検証・なりすまし解決(httpOnly Cookie)・DTO組み立てをサーバー側で実施
+- `src/app/actions.ts` — Server Actions(完了トグル・なりすまし)。認可と期間チェックをサーバー側で必ず検証
+- `src/lib/access.ts` — 公開期間/受講期間判定・進捗率計算の純粋関数(Vitestでテスト)。デモ基準日 `NOW = 2026/06/10` 固定
+- `src/auth.ts` / `src/auth.config.ts` — Auth.js本体とedge対応共通設定の分離(proxyからPrismaを参照しないため)
+- Tweaksパネル(配色等)のみ意図的にlocalStorage(ユーザー個人のデザイン検討用設定のため)
 
 要件定義書・タスクチェックリストはプロジェクト資料フォルダ(`動画学習プラットフォーム_ダッシュボードLMS/`)を参照。
