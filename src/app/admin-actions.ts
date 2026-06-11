@@ -324,6 +324,22 @@ export async function updateStudent(userId: string, input: StudentInput): Promis
   }
 }
 
+/**
+ * 受講者の物理削除(誤登録・テストユーザー・本人からの消去請求向け)
+ * 通常の退会・利用停止は無効化(isActive=false)を使い、進捗履歴を保持すること。
+ * 割当・完了記録はスキーマのカスケードで同時に削除される。
+ */
+export async function deleteStudent(userId: string): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (guard) return guard;
+  const target = await prisma.user.findUnique({ where: { id: userId } });
+  if (!target) return { ok: false, error: "受講者が見つかりません" };
+  if (target.role !== "student") return { ok: false, error: "管理者アカウントは削除できません" };
+  await prisma.user.delete({ where: { id: userId } });
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
 // ============================================================
 // ADM-04: 講座割り当てと受講期間設定
 // ============================================================

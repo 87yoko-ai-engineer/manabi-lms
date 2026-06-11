@@ -132,6 +132,8 @@ export interface AdminCourseRow {
 export interface AdminStudentRow {
   user: UiUser;
   enrollCount: number;
+  /** 完了記録の件数(削除時の影響表示用) */
+  progressCount: number;
   range: string;
 }
 

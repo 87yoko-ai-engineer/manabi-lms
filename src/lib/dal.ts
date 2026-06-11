@@ -378,11 +378,15 @@ export async function getAdminStudents(): Promise<AdminStudentRow[]> {
   const students = await prisma.user.findMany({
     where: { role: "student" },
     orderBy: { createdAt: "asc" },
-    include: { enrollments: { orderBy: { enrollStart: "asc" } } },
+    include: {
+      enrollments: { orderBy: { enrollStart: "asc" } },
+      _count: { select: { progress: true } },
+    },
   });
   return students.map((s) => ({
     user: toUiUser(s),
     enrollCount: s.enrollments.length,
+    progressCount: s._count.progress,
     range: s.enrollments.length
       ? `${fmtDate(s.enrollments[0].enrollStart)} 〜 ${fmtDate(s.enrollments[0].enrollEnd)}`
       : "—",

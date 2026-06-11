@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Breadcrumb, Avatar } from "@/components/shared/ui";
 import { Icons } from "@/components/shared/Icons";
 import { ImpersonateButton } from "@/components/admin/ImpersonateButton";
+import { DeleteStudentButton } from "@/components/admin/DeleteStudentButton";
 import { getAdminStudents } from "@/lib/dal";
 
 export default async function AdminUsersPage() {
@@ -23,7 +24,7 @@ export default async function AdminUsersPage() {
         <table className="atable">
           <thead><tr><th>受講者</th><th>メール</th><th>状態</th><th>割当講座</th><th>受講期間</th><th></th></tr></thead>
           <tbody>
-            {students.map(({ user, enrollCount, range }) => (
+            {students.map(({ user, enrollCount, progressCount, range }) => (
               <tr key={user.id} className={user.isActive ? "" : "is-inactive"}>
                 <td>
                   <div className="mx-user">
@@ -39,6 +40,7 @@ export default async function AdminUsersPage() {
                   <Link className="link-btn" href={`/admin/users/${user.id}`}>編集</Link>
                   <Link className="link-btn" href={`/admin/users/${user.id}/enrollments`}>割当</Link>
                   {user.isActive && <ImpersonateButton studentId={user.id} variant="link" />}
+                  <DeleteStudentButton userId={user.id} name={user.name} enrollCount={enrollCount} progressCount={progressCount} />
                 </td>
               </tr>
             ))}
