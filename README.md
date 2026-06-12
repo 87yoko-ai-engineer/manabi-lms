@@ -24,6 +24,16 @@
 |---|---|
 | ![ログイン](docs/screenshots/login.png) | ![講座割り当て](docs/screenshots/enrollments.png) |
 
+### モバイル表示(レスポンシブ対応)
+
+720px以下ではハンバーガーメニュー・検索の折りたたみ・縦積みレイアウトに切り替わる。
+
+| ログイン | 講座一覧 | 動画視聴 | 管理ダッシュボード |
+|---|---|---|---|
+| ![モバイル: ログイン](docs/screenshots/mobile-login.png) | ![モバイル: 講座一覧](docs/screenshots/mobile-student-home.png) | ![モバイル: 動画視聴](docs/screenshots/mobile-unit-view.png) | ![モバイル: 管理](docs/screenshots/mobile-admin-dashboard.png) |
+
+スクリーンショットは `node scripts/capture-screenshots.mjs` で自動撮影(puppeteer-core)。
+
 ## 技術構成
 
 | 項目 | 採用技術 |
