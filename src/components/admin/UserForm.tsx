@@ -53,7 +53,7 @@ export function UserForm({ user }: { user?: UiUser }) {
           <div className="fld-in"><Icons.mail size={17} /><input value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="user@example.com" autoComplete="off" /></div>
         </label>
         <label className="fld">
-          <span>{user ? "新しいパスワード(変更する場合のみ・8文字以上)" : "初期パスワード *(8文字以上)"}</span>
+          <span>{user ? "新しいパスワード(変更する場合のみ・12文字以上)" : "初期パスワード *(12文字以上)"}</span>
           <div className="fld-in"><Icons.lock size={17} /><input type="password" value={form.password} onChange={(e) => set("password", e.target.value)} placeholder="••••••••" autoComplete="new-password" /></div>
         </label>
         {user && (

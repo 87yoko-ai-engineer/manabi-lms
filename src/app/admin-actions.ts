@@ -25,6 +25,40 @@ function parseDateInput(s: string): Date | null {
   return new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
 }
 
+// ============================================================
+// 入力検証の共通ルール(改善提案 M-4)
+// UIのmaxLength等に頼らず、サーバー側で形式と長さを最終検証する
+// ============================================================
+
+/** DBやUIレイアウトを壊す異常長入力を弾く上限(通常運用では届かない値) */
+const MAX = {
+  title: 100,
+  subtitle: 200,
+  category: 50,
+  description: 2000,
+  goal: 200,
+  goalsCount: 20,
+  coverLabel: 10,
+  name: 100,
+  email: 254, // RFC 5321 のアドレス長上限
+  password: 100,
+  minutes: 6000, // 学習時間目安の上限(100時間)
+} as const;
+
+function tooLong(label: string, value: string, max: number): string | null {
+  return value.length > max ? `${label}は${max}文字以内にしてください` : null;
+}
+
+/** accent は coverOf() でCSS文字列に埋め込むため、#RRGGBB 形式のみ許可(CSS注入対策) */
+function isHexColor(s: string): boolean {
+  return /^#[0-9a-fA-F]{6}$/.test(s);
+}
+
+/** 厳密なRFC準拠ではなく「@とドメインを持つ」程度の妥当性チェック(送達確認は行わない) */
+function isEmailLike(s: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+}
+
 /** アクセントカラーからカバーグラデーションを導出 */
 function coverOf(accent: string): string {
   return `linear-gradient(135deg, color-mix(in srgb, ${accent} 80%, #000) 0%, ${accent} 55%, color-mix(in srgb, ${accent} 65%, #fff) 100%)`;
@@ -56,6 +90,19 @@ function validateCourse(input: CourseInput): string | null {
   const pe = parseDateInput(input.publishEnd);
   if (!ps || !pe) return "公開期間の日付形式が不正です";
   if (ps > pe) return "公開終了日は公開開始日以降にしてください";
+  const lenErr =
+    tooLong("タイトル", input.title.trim(), MAX.title) ??
+    tooLong("サブタイトル", input.subtitle.trim(), MAX.subtitle) ??
+    tooLong("カテゴリ", input.category.trim(), MAX.category) ??
+    tooLong("説明", input.description.trim(), MAX.description) ??
+    tooLong("カバーラベル", input.coverLabel.trim(), MAX.coverLabel);
+  if (lenErr) return lenErr;
+  if (input.goals.length > MAX.goalsCount) return `学習目標は${MAX.goalsCount}件以内にしてください`;
+  for (const g of input.goals) {
+    const err = tooLong("学習目標", g.trim(), MAX.goal);
+    if (err) return err;
+  }
+  if (!isHexColor(input.accent)) return "テーマカラーの形式が不正です";
   return null;
 }
 
@@ -127,6 +174,8 @@ export async function createChapter(courseId: string, title: string): Promise<Ac
   const guard = await requireAdmin();
   if (guard) return guard;
   if (!title.trim()) return { ok: false, error: "チャプター名を入力してください" };
+  const lenErr = tooLong("チャプター名", title.trim(), MAX.title);
+  if (lenErr) return { ok: false, error: lenErr };
   const max = await prisma.chapter.aggregate({ where: { courseId }, _max: { sortOrder: true } });
   await prisma.chapter.create({
     data: { courseId, title: title.trim(), sortOrder: (max._max.sortOrder ?? -1) + 1 },
@@ -139,6 +188,8 @@ export async function updateChapter(chapterId: string, title: string): Promise<A
   const guard = await requireAdmin();
   if (guard) return guard;
   if (!title.trim()) return { ok: false, error: "チャプター名を入力してください" };
+  const lenErr = tooLong("チャプター名", title.trim(), MAX.title);
+  if (lenErr) return { ok: false, error: lenErr };
   await prisma.chapter.update({ where: { id: chapterId }, data: { title: title.trim() } });
   revalidatePath("/", "layout");
   return { ok: true };
@@ -181,7 +232,16 @@ function validateUnit(input: UnitInput): string | null {
   if (!input.title.trim()) return "ユニット名を入力してください";
   if (!input.youtubeVideoId.trim()) return "YouTube動画IDを入力してください";
   if (!Number.isFinite(input.estimatedMinutes) || input.estimatedMinutes < 0) return "学習時間目安を入力してください";
+  if (input.estimatedMinutes > MAX.minutes) return `学習時間目安は${MAX.minutes}分以内にしてください`;
+  const lenErr = tooLong("ユニット名", input.title.trim(), MAX.title);
+  if (lenErr) return lenErr;
+  // 動画IDはURL→ID抽出後に検証するため createUnit / updateUnit 側でチェック
   return null;
+}
+
+/** YouTube動画IDの文字種チェック(iframe srcに埋め込むため英数・-・_ のみ許可) */
+function isValidVideoId(s: string): boolean {
+  return /^[\w-]{6,20}$/.test(s);
 }
 
 /** URLが貼られても動画IDを取り出せるようにする */
@@ -196,12 +256,14 @@ export async function createUnit(chapterId: string, input: UnitInput): Promise<A
   if (guard) return guard;
   const err = validateUnit(input);
   if (err) return { ok: false, error: err };
+  const videoId = normalizeVideoId(input.youtubeVideoId);
+  if (!isValidVideoId(videoId)) return { ok: false, error: "YouTube動画IDの形式が不正です" };
   const max = await prisma.unit.aggregate({ where: { chapterId }, _max: { sortOrder: true } });
   await prisma.unit.create({
     data: {
       chapterId,
       title: input.title.trim(),
-      youtubeVideoId: normalizeVideoId(input.youtubeVideoId),
+      youtubeVideoId: videoId,
       estimatedMinutes: Math.round(input.estimatedMinutes),
       sortOrder: (max._max.sortOrder ?? -1) + 1,
     },
@@ -215,11 +277,13 @@ export async function updateUnit(unitId: string, input: UnitInput): Promise<Acti
   if (guard) return guard;
   const err = validateUnit(input);
   if (err) return { ok: false, error: err };
+  const videoId = normalizeVideoId(input.youtubeVideoId);
+  if (!isValidVideoId(videoId)) return { ok: false, error: "YouTube動画IDの形式が不正です" };
   await prisma.unit.update({
     where: { id: unitId },
     data: {
       title: input.title.trim(),
-      youtubeVideoId: normalizeVideoId(input.youtubeVideoId),
+      youtubeVideoId: videoId,
       estimatedMinutes: Math.round(input.estimatedMinutes),
     },
   });
@@ -266,13 +330,30 @@ export interface StudentInput {
   isActive: boolean;
 }
 
+/** NIST SP 800-63B に寄せた最小長(L-2)。デモアカウントはシード投入のため影響しない */
+const PASSWORD_MIN = 12;
+
+/** 氏名・メール・パスワードの共通検証(パスワードは指定がある場合のみ) */
+function validateStudent(input: StudentInput): string | null {
+  if (!input.name.trim()) return "氏名を入力してください";
+  if (!input.email.trim()) return "メールアドレスを入力してください";
+  return (
+    tooLong("氏名", input.name.trim(), MAX.name) ??
+    tooLong("メールアドレス", input.email.trim(), MAX.email) ??
+    (!isEmailLike(input.email.trim()) ? "メールアドレスの形式が不正です" : null) ??
+    (input.password && input.password.length < PASSWORD_MIN
+      ? `パスワードは${PASSWORD_MIN}文字以上にしてください`
+      : null) ??
+    (input.password ? tooLong("パスワード", input.password, MAX.password) : null)
+  );
+}
+
 export async function createStudent(input: StudentInput): Promise<ActionResult> {
   const guard = await requireAdmin();
   if (guard) return guard;
-  if (!input.name.trim()) return { ok: false, error: "氏名を入力してください" };
-  if (!input.email.trim()) return { ok: false, error: "メールアドレスを入力してください" };
   if (!input.password) return { ok: false, error: "初期パスワードを入力してください" };
-  if (input.password.length < 8) return { ok: false, error: "パスワードは8文字以上にしてください" };
+  const err = validateStudent(input);
+  if (err) return { ok: false, error: err };
 
   try {
     const user = await prisma.user.create({
@@ -297,9 +378,8 @@ export async function createStudent(input: StudentInput): Promise<ActionResult> 
 export async function updateStudent(userId: string, input: StudentInput): Promise<ActionResult> {
   const guard = await requireAdmin();
   if (guard) return guard;
-  if (!input.name.trim()) return { ok: false, error: "氏名を入力してください" };
-  if (!input.email.trim()) return { ok: false, error: "メールアドレスを入力してください" };
-  if (input.password && input.password.length < 8) return { ok: false, error: "パスワードは8文字以上にしてください" };
+  const err = validateStudent(input);
+  if (err) return { ok: false, error: err };
 
   const target = await prisma.user.findUnique({ where: { id: userId } });
   if (!target || target.role !== "student") return { ok: false, error: "受講者が見つかりません" };

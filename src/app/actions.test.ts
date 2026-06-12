@@ -17,7 +17,7 @@ vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    user: { findUnique: vi.fn() },
+    user: { findUnique: vi.fn(), create: vi.fn() },
     course: { create: vi.fn() },
     unit: { findUnique: vi.fn() },
     unitProgress: { findUnique: vi.fn(), create: vi.fn(), delete: vi.fn() },
@@ -27,7 +27,7 @@ vi.mock("@/lib/prisma", () => ({
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { toggleUnitProgress } from "@/app/actions";
-import { createCourse, type CourseInput } from "@/app/admin-actions";
+import { createCourse, createUnit, createStudent, type CourseInput, type StudentInput } from "@/app/admin-actions";
 
 const mockedAuth = vi.mocked(auth);
 const mocked = vi.mocked(prisma, true);
@@ -167,5 +167,63 @@ describe("管理アクションの認可(requireAdmin / AUTH-03)", () => {
     const res = await createCourse(validCourseInput);
 
     expect(res).toEqual({ ok: true, id: "c-new" });
+  });
+});
+
+describe("サーバー側入力検証(M-4 / L-2)", () => {
+  const validStudent: StudentInput = {
+    name: "テスト 受講者",
+    email: "new-student@example.com",
+    password: "long-enough-pass", // 16文字
+    isActive: true,
+  };
+
+  beforeEach(() => {
+    loginAs({ id: "a-1", role: "admin" }); // 認可は通した上で検証だけを試す
+  });
+
+  it("テーマカラーが #RRGGBB 形式でなければ拒否する(CSS注入対策)", async () => {
+    const res = await createCourse({ ...validCourseInput, accent: "red; background:url(//evil)" });
+
+    expect(res).toEqual({ ok: false, error: "テーマカラーの形式が不正です" });
+    expect(mocked.course.create).not.toHaveBeenCalled();
+  });
+
+  it("タイトルが最大長を超えると拒否する", async () => {
+    const res = await createCourse({ ...validCourseInput, title: "あ".repeat(101) });
+
+    expect(res.ok).toBe(false);
+    expect(res.ok === false && res.error).toContain("100文字以内");
+  });
+
+  it("YouTube動画IDに不正な文字が含まれると拒否する(iframe src への注入対策)", async () => {
+    const res = await createUnit("ch-1", {
+      title: "ユニット",
+      youtubeVideoId: 'abc"><script>',
+      estimatedMinutes: 10,
+    });
+
+    expect(res).toEqual({ ok: false, error: "YouTube動画IDの形式が不正です" });
+  });
+
+  it("パスワードが12文字未満なら受講者を発行できない", async () => {
+    const res = await createStudent({ ...validStudent, password: "short-pass1" }); // 11文字
+
+    expect(res).toEqual({ ok: false, error: "パスワードは12文字以上にしてください" });
+    expect(mocked.user.create).not.toHaveBeenCalled();
+  });
+
+  it("メールアドレスの形式が不正なら拒否する", async () => {
+    const res = await createStudent({ ...validStudent, email: "not-an-email" });
+
+    expect(res).toEqual({ ok: false, error: "メールアドレスの形式が不正です" });
+  });
+
+  it("形式を満たせば受講者を発行できる", async () => {
+    mocked.user.create.mockResolvedValue({ id: "u-new" } as never);
+
+    const res = await createStudent(validStudent);
+
+    expect(res).toEqual({ ok: true, id: "u-new" });
   });
 });
