@@ -122,6 +122,9 @@ export async function getCourseDetail(courseId: string, userId: string): Promise
     },
   });
   if (!course) return null;
+  // 認可: 割り当てられていない講座は存在しない扱いで拒否する(直URL対策)。
+  // 一覧(STU-01)に出ないだけではなく、サーバー側でも閲覧を遮断する。
+  if (course.enrollments.length === 0) return null;
 
   const doneSet = await getDoneSet(userId);
   const allUnits = course.chapters.flatMap((ch) => ch.units);
