@@ -17,6 +17,11 @@ export function UnitViewClient({ data }: { data: UnitViewDTO }) {
   const { course, chapter, unit, done, access, index, total, prevId, nextId, sidebar } = data;
   const locked = !access.viewable;
 
+  // 「2-1」= 第2章の1本目。サイドバー(講座の全構成)から現在位置を割り出す
+  const chIdx = sidebar.findIndex((c) => c.id === chapter.id);
+  const uIdx = chIdx >= 0 ? sidebar[chIdx].units.findIndex((u) => u.id === unit.id) : -1;
+  const unitNo = chIdx >= 0 && uIdx >= 0 ? `${chIdx + 1}-${uIdx + 1}` : null;
+
   function nav(uid: string) {
     router.push(`/courses/${course.id}/units/${uid}`);
   }
@@ -57,7 +62,7 @@ export function UnitViewClient({ data }: { data: UnitViewDTO }) {
           <div className="uv-info">
             <div className="uv-info-top">
               <span className="uv-chap">{chapter.title}</span>
-              <span className="uv-idx">ユニット {index + 1} / {total}</span>
+              <span className="uv-idx">{unitNo ? `ユニット ${unitNo}(講座全体 ${index + 1} / ${total})` : `ユニット ${index + 1} / ${total}`}</span>
             </div>
             <h1 className="uv-title">{unit.title}</h1>
             <div className="uv-meta">
@@ -90,15 +95,15 @@ export function UnitViewClient({ data }: { data: UnitViewDTO }) {
             <button className="uv-side-back" onClick={() => router.push(`/courses/${course.id}`)}>講座詳細へ</button>
           </div>
           <div className="uv-side-list">
-            {sidebar.map((ch) => (
+            {sidebar.map((ch, ci) => (
               <div className="uv-side-chap" key={ch.id}>
                 <div className="uv-side-chap-t">{ch.title}</div>
-                {ch.units.map((u) => {
+                {ch.units.map((u, ui) => {
                   const cur = u.id === unit.id;
                   return (
                     <button key={u.id} className={"uv-side-unit" + (cur ? " is-cur" : "") + (u.done ? " is-done" : "")} onClick={() => nav(u.id)}>
                       <span className={"uv-side-check " + (u.done ? "on" : "")}>{u.done ? <Icons.check size={13} /> : cur ? <Icons.play size={11} /> : ""}</span>
-                      <span className="uv-side-title">{u.title}</span>
+                      <span className="uv-side-title"><span className="unit-no">{ci + 1}-{ui + 1}.</span> {u.title}</span>
                       <span className="uv-side-min">{u.estimatedMinutes}分</span>
                     </button>
                   );

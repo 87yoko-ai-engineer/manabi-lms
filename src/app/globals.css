@@ -229,7 +229,8 @@ svg{flex:none}
 .unit:hover{background:color-mix(in srgb,var(--brand) 4%,#fff)}
 .unit-check{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;flex:none;color:var(--ink-4)}
 .unit-check.on{background:var(--c-done);border-color:var(--c-done);color:#fff}
-.unit-num{font-family:var(--num);font-weight:700;font-size:12px;color:var(--ink-4)}
+/* ユニットの位置番号「2-1」(第2章の1本目)。視聴ページ・サイドバー・講座詳細で共通 */
+.unit-no{font-family:var(--num);font-weight:700;color:var(--ink-4)}
 .unit-play{color:var(--ink-4);display:flex}
 .unit:hover .unit-play{color:var(--brand)}
 .unit.is-done .unit-title{color:var(--ink-3)}

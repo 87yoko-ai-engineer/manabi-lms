@@ -70,7 +70,7 @@ export function CourseDetailView({ course }: { course: CourseDetailDTO }) {
       <div className="cd-list-head"><Icons.layers size={20} /><h2>カリキュラム</h2></div>
 
       <div className="chapters">
-        {course.chapters.map((ch) => {
+        {course.chapters.map((ch, ci) => {
           const cDone = ch.units.filter((u) => u.done).length;
           const isOpen = !closed.includes(ch.id);
           return (
@@ -85,9 +85,9 @@ export function CourseDetailView({ course }: { course: CourseDetailDTO }) {
                 <ul className="units">
                   {ch.units.map((u, ui) => (
                     <li key={u.id} className={"unit" + (u.done ? " is-done" : "")} onClick={() => openUnit(u.id)}>
-                      <span className={"unit-check " + (u.done ? "on" : "")}>{u.done ? <Icons.check size={15} /> : <span className="unit-num">{ui + 1}</span>}</span>
+                      <span className={"unit-check " + (u.done ? "on" : "")}>{u.done && <Icons.check size={15} />}</span>
                       <span className="unit-play"><Icons.playC size={20} /></span>
-                      <span className="unit-title">{u.title}</span>
+                      <span className="unit-title"><span className="unit-no">{ci + 1}-{ui + 1}.</span> {u.title}</span>
                       <span className="unit-min"><Icons.clock size={14} />{u.estimatedMinutes}分</span>
                       <span className="unit-go"><Icons.chevRight size={18} /></span>
                     </li>
