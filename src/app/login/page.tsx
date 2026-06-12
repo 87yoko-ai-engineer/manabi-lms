@@ -18,39 +18,47 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [err, setErr] = useState("");
-  const [busy, setBusy] = useState(false);
+  // 処理中の場所("form" または デモアカウントのid)。押した場所にだけスピナーを出す
+  const [busyKey, setBusyKey] = useState<string | null>(null);
+  const busy = busyKey !== null;
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    // ERR-03: 必須項目の未入力はフォーム送信前にバリデーション
-    if (!email.trim()) { setErr("メールアドレスを入力してください"); return; }
-    if (!pw) { setErr("パスワードを入力してください"); return; }
-
-    setBusy(true);
+  /** 認証の共通処理(フォーム送信・デモアカウントの両方から呼ぶ) */
+  async function doLogin(emailValue: string, pwValue: string, key: string) {
+    setErr("");
+    setBusyKey(key);
     const res = await signIn("credentials", {
-      email: email.trim().toLowerCase(),
-      password: pw,
+      email: emailValue.trim().toLowerCase(),
+      password: pwValue,
       redirect: false,
     });
-    setBusy(false);
 
     if (res?.error) {
+      setBusyKey(null);
       // ERR-02: 無効化アカウント / ERR-01: それ以外の認証失敗(意図的に曖昧化)
       setErr(res.code === "inactive"
         ? "このアカウントは無効化されています。管理者にお問い合わせください"
         : "メールアドレスまたはパスワードが正しくありません");
       return;
     }
-    // ロール別のホームへ
+    // ロール別のホームへ(遷移中はスピナーを出したままにする)
     const session = await getSession();
     router.push(session?.user.role === "admin" ? "/admin" : "/");
     router.refresh();
   }
 
-  function quick(u: User) {
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    // ERR-03: 必須項目の未入力はフォーム送信前にバリデーション
+    if (!email.trim()) { setErr("メールアドレスを入力してください"); return; }
+    if (!pw) { setErr("パスワードを入力してください"); return; }
+    await doLogin(email, pw, "form");
+  }
+
+  /** デモアカウント: 1クリックでログインまで完了する(無効アカウントはERR-02のデモになる) */
+  async function quick(u: User) {
     setEmail(u.email);
     setPw(DEMO_PASSWORD);
-    setErr("");
+    await doLogin(u.email, DEMO_PASSWORD, u.id);
   }
 
   return (
@@ -85,14 +93,14 @@ export default function LoginPage() {
           </label>
           {err && <div className="login-err"><Icons.x size={15} />{err}</div>}
           <button className="btn-primary lg" type="submit" disabled={busy}>
-            {busy ? <><span className="spinner" />認証中…</> : <>ログイン<Icons.arrowRight size={18} /></>}
+            {busyKey === "form" ? <><span className="spinner" />認証中…</> : <>ログイン<Icons.arrowRight size={18} /></>}
           </button>
           <div className="login-demo">
-            <span className="login-demo-label">デモアカウントで試す</span>
+            <span className="login-demo-label">デモアカウントで試す(クリックでそのままログイン)</span>
             <div className="login-demo-grid">
               {USERS.map((u) => (
-                <button type="button" key={u.id} className={"demo-acct" + (u.isActive ? "" : " is-off")} onClick={() => quick(u)}>
-                  <Avatar user={u} size={28} />
+                <button type="button" key={u.id} className={"demo-acct" + (u.isActive ? "" : " is-off")} disabled={busy} onClick={() => quick(u)}>
+                  {busyKey === u.id ? <span className="spinner" style={{ width: 28, height: 28, color: "var(--brand)" }} /> : <Avatar user={u} size={28} />}
                   <span className="da-name">{u.name}</span>
                   <span className={"da-role " + (u.role === "admin" ? "is-admin" : "")}>{u.role === "admin" ? "管理者" : u.isActive ? "受講者" : "無効"}</span>
                 </button>
