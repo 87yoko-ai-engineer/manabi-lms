@@ -29,14 +29,13 @@ export function SummaryCard({ courses }: { courses: CourseListItem[] }) {
   );
 }
 
-export function CourseCard({ course, onOpen, layout }: {
+export function CourseCard({ course, onOpen }: {
   course: CourseListItem;
   onOpen: () => void;
-  layout: "row" | "card";
 }) {
   const locked = !course.access.viewable;
   return (
-    <article className={"ccard " + layout + (locked ? " is-locked" : "")} onClick={onOpen}>
+    <article className={"ccard row" + (locked ? " is-locked" : "")} onClick={onOpen}>
       <div className="ccard-cover" style={{ background: course.cover }}>
         <span className="cover-label">{course.coverLabel}</span>
         <span className={"cover-tag " + (course.tag === "必須" ? "is-req" : "")}>{course.tag}</span>

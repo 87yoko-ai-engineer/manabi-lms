@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Noto_Sans_JP, Zen_Kaku_Gothic_New, Outfit } from "next/font/google";
 import "./globals.css";
-import { TweaksProvider } from "@/components/providers/TweaksProvider";
-import { TweaksPanel } from "@/components/tweaks/TweaksPanel";
 
 const notoSansJP = Noto_Sans_JP({
   weight: ["400", "500", "700"],
@@ -32,10 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ja">
       <body className={`${notoSansJP.variable} ${zenKaku.variable} ${outfit.variable}`}>
-        <TweaksProvider>
-          {children}
-          <TweaksPanel />
-        </TweaksProvider>
+        {children}
       </body>
     </html>
   );

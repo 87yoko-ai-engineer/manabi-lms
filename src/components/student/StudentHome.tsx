@@ -8,14 +8,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Breadcrumb } from "@/components/shared/ui";
 import { Icons } from "@/components/shared/Icons";
 import { SummaryCard, CourseCard, SearchSidebar, StatusKey } from "@/components/student/cards";
-import { useTweaks } from "@/components/providers/TweaksProvider";
 import { statusOf } from "@/lib/access";
 import type { CourseListItem } from "@/lib/types";
 
 export function StudentHome({ courses }: { courses: CourseListItem[] }) {
   const router = useRouter();
   const params = useSearchParams();
-  const { tweaks } = useTweaks();
   // UX-3: モバイルでは検索パネルを折りたたみ、講座一覧を先に見せる
   const [searchOpen, setSearchOpen] = React.useState(false);
 
@@ -76,9 +74,9 @@ export function StudentHome({ courses }: { courses: CourseListItem[] }) {
           {filtered.length === 0 && (
             <div className="empty"><Icons.search size={28} /><p>条件に一致する講座がありません</p><button className="btn-ghost" onClick={clear}>条件をクリア</button></div>
           )}
-          <div className={"ccard-list " + (tweaks.layout === "card" ? "as-cards" : "")}>
+          <div className="ccard-list">
             {filtered.map((c) => (
-              <CourseCard key={c.id} course={c} layout={tweaks.layout} onOpen={() => router.push(`/courses/${c.id}`)} />
+              <CourseCard key={c.id} course={c} onOpen={() => router.push(`/courses/${c.id}`)} />
             ))}
           </div>
         </main>
