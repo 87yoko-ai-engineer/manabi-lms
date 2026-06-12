@@ -13,6 +13,18 @@ import {
   ActionResult,
 } from "@/app/admin-actions";
 import type { AdminCourseEdit } from "@/lib/types";
+import { trackUnsaved } from "@/lib/unsaved";
+
+/**
+ * 未保存の変更がある間、ページを離れる操作(リロード・タブ閉じ・アプリ内遷移)に
+ * 確認ダイアログを出す。実体は src/lib/unsaved.ts(TopNavのボタン遷移とも連動)。
+ */
+function useUnsavedWarning(dirty: boolean) {
+  React.useEffect(() => {
+    if (!dirty) return;
+    return trackUnsaved();
+  }, [dirty]);
+}
 
 export function CurriculumEditor({ course }: { course: AdminCourseEdit }) {
   const [pending, start] = useTransition();
@@ -21,6 +33,10 @@ export function CurriculumEditor({ course }: { course: AdminCourseEdit }) {
 
   return (
     <div>
+      <p className="ed-hint" style={{ margin: "0 0 14px" }}>
+        カリキュラムは「基本情報を保存」とは別に、<strong>行ごとに保存</strong>します。
+        行を書き換えると右側に「保存」ボタンが現れます(追加・削除・並び替えは押した時点で保存されます)。
+      </p>
       {course.chapters.map((ch, ci) => (
         <ChapterEditor key={ch.id} chapter={ch} index={ci} total={course.chapters.length} onError={setErr} />
       ))}
@@ -57,6 +73,7 @@ function ChapterEditor({ chapter, index, total, onError }: {
   const [title, setTitle] = useState(chapter.title);
   const [nu, setNu] = useState({ title: "", vid: "", min: "" });
   const [addBusy, setAddBusy] = useState(false);
+  useUnsavedWarning(title !== chapter.title);
 
   function run(action: () => Promise<ActionResult>) {
     onError("");
@@ -121,6 +138,7 @@ function UnitEditor({ unit, index, total, onError }: {
   const [pending, start] = useTransition();
   const [form, setForm] = useState({ title: unit.title, vid: unit.youtubeVideoId, min: String(unit.estimatedMinutes) });
   const dirty = form.title !== unit.title || form.vid !== unit.youtubeVideoId || form.min !== String(unit.estimatedMinutes);
+  useUnsavedWarning(dirty);
 
   function run(action: () => Promise<ActionResult>) {
     onError("");
@@ -138,9 +156,9 @@ function UnitEditor({ unit, index, total, onError }: {
       <div className="ed-row-btns">
         {pending && <span className="spinner sm" style={{ marginRight: 4, color: "var(--brand)" }} />}
         {dirty && !pending && (
-          <button className="ed-ibtn" title="保存" style={{ color: "var(--brand)" }}
+          <button className="ed-save-btn" title="この行の変更を保存"
             onClick={() => run(() => updateUnit(unit.id, { title: form.title, youtubeVideoId: form.vid, estimatedMinutes: Number(form.min) }))}>
-            <Icons.check size={16} />
+            <Icons.check size={14} />保存
           </button>
         )}
         <button className="ed-ibtn" title="上へ" disabled={pending || index === 0} onClick={() => run(() => moveUnit(unit.id, "up"))}><Icons.chevDown size={16} style={{ transform: "rotate(180deg)" }} /></button>
