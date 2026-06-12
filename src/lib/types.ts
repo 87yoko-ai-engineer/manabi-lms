@@ -5,6 +5,13 @@
 
 export type Role = "admin" | "student";
 
+/**
+ * Server Actions の共通戻り値型(M-3: 全アクションでこの型に統一)
+ * 失敗時は必ずユーザーに見せられる日本語の error を持つ。
+ * 想定外の例外は捕捉せず throw し、error.tsx(ERR-06)に表示を任せる。
+ */
+export type ActionResult = { ok: true; id?: string } | { ok: false; error: string };
+
 /** UI表示用ユーザー(アバターの頭文字・色つき) */
 export interface UiUser {
   id: string;

@@ -8,14 +8,34 @@ import { Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/dal";
-
-export type ActionResult = { ok: true; id?: string } | { ok: false; error: string };
+import type { ActionResult } from "@/lib/types";
 
 /** 管理者でなければエラーを返す共通ガード */
 async function requireAdmin(): Promise<ActionResult | null> {
   const user = await getSessionUser();
   if (!user || user.role !== "admin") return { ok: false, error: "アクセス権限がありません" };
   return null;
+}
+
+/**
+ * 削除系アクションの共通実行ヘルパー(M-3)
+ * - P2025(対象が存在しない): 二重クリックや別画面での削除と競合したケース。
+ *   「消す」という目的は既に達成されているため、エラーにせず成功扱いにする(冪等)
+ * - P2003(外部キー制約): 現スキーマはカスケード削除のため通常発生しないが、
+ *   スキーマ変更時の保険として 500 ではなくメッセージで返す
+ * - それ以外は想定外として throw し、error.tsx(ERR-06)に表示を任せる
+ */
+async function runDelete(label: string, del: () => Promise<unknown>): Promise<ActionResult> {
+  try {
+    await del();
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2003") {
+      return { ok: false, error: `関連するデータが残っているため${label}を削除できません` };
+    }
+    if (!(e instanceof Prisma.PrismaClientKnownRequestError) || e.code !== "P2025") throw e;
+  }
+  revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 function parseDateInput(s: string): Date | null {
@@ -161,9 +181,7 @@ export async function updateCourse(courseId: string, input: CourseInput): Promis
 export async function deleteCourse(courseId: string): Promise<ActionResult> {
   const guard = await requireAdmin();
   if (guard) return guard;
-  await prisma.course.delete({ where: { id: courseId } });
-  revalidatePath("/", "layout");
-  return { ok: true };
+  return runDelete("講座", () => prisma.course.delete({ where: { id: courseId } }));
 }
 
 // ============================================================
@@ -199,9 +217,7 @@ export async function updateChapter(chapterId: string, title: string): Promise<A
 export async function deleteChapter(chapterId: string): Promise<ActionResult> {
   const guard = await requireAdmin();
   if (guard) return guard;
-  await prisma.chapter.delete({ where: { id: chapterId } });
-  revalidatePath("/", "layout");
-  return { ok: true };
+  return runDelete("チャプター", () => prisma.chapter.delete({ where: { id: chapterId } }));
 }
 
 export async function moveChapter(chapterId: string, dir: "up" | "down"): Promise<ActionResult> {
@@ -295,9 +311,7 @@ export async function updateUnit(unitId: string, input: UnitInput): Promise<Acti
 export async function deleteUnit(unitId: string): Promise<ActionResult> {
   const guard = await requireAdmin();
   if (guard) return guard;
-  await prisma.unit.delete({ where: { id: unitId } });
-  revalidatePath("/", "layout");
-  return { ok: true };
+  return runDelete("ユニット", () => prisma.unit.delete({ where: { id: unitId } }));
 }
 
 export async function moveUnit(unitId: string, dir: "up" | "down"): Promise<ActionResult> {
@@ -415,9 +429,7 @@ export async function deleteStudent(userId: string): Promise<ActionResult> {
   const target = await prisma.user.findUnique({ where: { id: userId } });
   if (!target) return { ok: false, error: "受講者が見つかりません" };
   if (target.role !== "student") return { ok: false, error: "管理者アカウントは削除できません" };
-  await prisma.user.delete({ where: { id: userId } });
-  revalidatePath("/", "layout");
-  return { ok: true };
+  return runDelete("受講者", () => prisma.user.delete({ where: { id: userId } }));
 }
 
 // ============================================================

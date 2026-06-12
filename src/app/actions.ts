@@ -9,13 +9,14 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser, getActingUser, VIEW_AS_COOKIE } from "@/lib/dal";
 import { accessOf } from "@/lib/access";
+import type { ActionResult } from "@/lib/types";
 
 /**
  * STU-05: ユニットの手動完了/取り消し(UnitProgress の作成・削除)
  * - 操作できるのは「受講者本人」または「なりすまし中の管理者」のみ
  * - 公開期間外・受講期間外はサーバー側でも拒否(ERR-07/08)
  */
-export async function toggleUnitProgress(unitId: string): Promise<{ ok: boolean; error?: string }> {
+export async function toggleUnitProgress(unitId: string): Promise<ActionResult> {
   const acting = await getActingUser();
   if (!acting) return { ok: false, error: "認証が必要です" };
   const userId = acting.actingUser.id;

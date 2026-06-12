@@ -10,9 +10,8 @@ import { Icons } from "@/components/shared/Icons";
 import {
   createChapter, updateChapter, deleteChapter, moveChapter,
   createUnit, updateUnit, deleteUnit, moveUnit,
-  ActionResult,
 } from "@/app/admin-actions";
-import type { AdminCourseEdit } from "@/lib/types";
+import type { ActionResult, AdminCourseEdit } from "@/lib/types";
 import { trackUnsaved } from "@/lib/unsaved";
 
 /**

@@ -10,8 +10,8 @@ import Link from "next/link";
 import { Icons } from "@/components/shared/Icons";
 import { DateField } from "@/components/shared/DateField";
 import { DragScroll } from "@/components/shared/DragScroll";
-import { assignCourse, unassignCourse, ActionResult } from "@/app/admin-actions";
-import type { EnrollmentEditorData } from "@/lib/types";
+import { assignCourse, unassignCourse } from "@/app/admin-actions";
+import type { ActionResult, EnrollmentEditorData } from "@/lib/types";
 
 type Row = EnrollmentEditorData["rows"][number];
 

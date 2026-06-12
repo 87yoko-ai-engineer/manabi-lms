@@ -3,6 +3,7 @@
 // 対象:
 //   - toggleUnitProgress(STU-05): 未認証・未割当・期間外の拒否
 //   - 管理アクション(ADM-01): 受講者/未認証セッションの拒否(requireAdmin)
+//   - 削除系のエラーハンドリング(M-3): 競合削除の冪等扱い
 // prisma / auth / next はモックし、サーバー側の認可だけを検証する。
 // 実行: npm test
 // ============================================================
@@ -18,16 +19,17 @@ vi.mock("@/auth", () => ({ auth: vi.fn() }));
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     user: { findUnique: vi.fn(), create: vi.fn() },
-    course: { create: vi.fn() },
+    course: { create: vi.fn(), delete: vi.fn() },
     unit: { findUnique: vi.fn() },
     unitProgress: { findUnique: vi.fn(), create: vi.fn(), delete: vi.fn() },
   },
 }));
 
+import { Prisma } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { toggleUnitProgress } from "@/app/actions";
-import { createCourse, createUnit, createStudent, type CourseInput, type StudentInput } from "@/app/admin-actions";
+import { createCourse, deleteCourse, createUnit, createStudent, type CourseInput, type StudentInput } from "@/app/admin-actions";
 
 const mockedAuth = vi.mocked(auth);
 const mocked = vi.mocked(prisma, true);
@@ -97,7 +99,7 @@ describe("toggleUnitProgress の認可(STU-05 / ERR-07,08)", () => {
     const res = await toggleUnitProgress("un-1");
 
     expect(res.ok).toBe(false);
-    expect(res.error).toContain("割り当てられていません");
+    expect(res.ok === false && res.error).toContain("割り当てられていません");
     expect(mocked.unitProgress.create).not.toHaveBeenCalled();
   });
 
@@ -115,7 +117,7 @@ describe("toggleUnitProgress の認可(STU-05 / ERR-07,08)", () => {
     const res = await toggleUnitProgress("un-1");
 
     expect(res.ok).toBe(false);
-    expect(res.error).toContain("受講期間外");
+    expect(res.ok === false && res.error).toContain("受講期間外");
     expect(mocked.unitProgress.create).not.toHaveBeenCalled();
   });
 
@@ -167,6 +169,41 @@ describe("管理アクションの認可(requireAdmin / AUTH-03)", () => {
     const res = await createCourse(validCourseInput);
 
     expect(res).toEqual({ ok: true, id: "c-new" });
+  });
+});
+
+describe("削除系のエラーハンドリング(M-3)", () => {
+  /** Prismaが「対象レコードなし」で投げるエラー(P2025)を再現する */
+  function p2025() {
+    return new Prisma.PrismaClientKnownRequestError("Record not found", {
+      code: "P2025",
+      clientVersion: "test",
+    });
+  }
+
+  it("受講者セッションでは講座を削除できない", async () => {
+    loginAs({ id: "u-1", role: "student" });
+
+    const res = await deleteCourse("c-1");
+
+    expect(res).toEqual({ ok: false, error: "アクセス権限がありません" });
+    expect(mocked.course.delete).not.toHaveBeenCalled();
+  });
+
+  it("削除対象が既に消えていても成功扱いにする(冪等・二重クリック対策)", async () => {
+    loginAs({ id: "a-1", role: "admin" });
+    mocked.course.delete.mockRejectedValue(p2025());
+
+    const res = await deleteCourse("c-1");
+
+    expect(res).toEqual({ ok: true });
+  });
+
+  it("想定外のエラーは握りつぶさず投げ直す(error.tsx / ERR-06 に任せる)", async () => {
+    loginAs({ id: "a-1", role: "admin" });
+    mocked.course.delete.mockRejectedValue(new Error("DB接続断"));
+
+    await expect(deleteCourse("c-1")).rejects.toThrow("DB接続断");
   });
 });
 
