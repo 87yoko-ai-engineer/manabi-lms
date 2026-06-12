@@ -21,22 +21,23 @@ export default async function AdminUsersPage() {
       </div>
       <section className="panel">
         <div className="panel-head"><Icons.users size={19} /><h2>受講者一覧</h2><span className="count-badge">{students.length}名</span></div>
-        <table className="atable">
+        {/* モバイルでは .atable-cards のCSSで「上段=受講者+操作 / 下段=詳細」の2段カードに組み替わる */}
+        <table className="atable atable-cards">
           <thead><tr><th>受講者</th><th>メール</th><th>状態</th><th>割当講座</th><th>受講期間</th><th></th></tr></thead>
           <tbody>
             {students.map(({ user, enrollCount, progressCount, range }) => (
               <tr key={user.id} className={user.isActive ? "" : "is-inactive"}>
-                <td>
+                <td className="atc-main">
                   <div className="mx-user">
                     <Avatar user={user} size={32} />
                     <div className="mx-user-meta"><span className="mxu-name">{user.name}</span><span className="mxu-mail">ID: {user.id}</span></div>
                   </div>
                 </td>
-                <td className="at-dim">{user.email}</td>
-                <td>{user.isActive ? <span className="state-on">有効</span> : <span className="state-off">無効</span>}</td>
-                <td><span className="enr-badge">{enrollCount} 講座</span></td>
-                <td className="at-dim">{range}</td>
-                <td className="at-actions">
+                <td className="at-dim atc-meta">{user.email}</td>
+                <td className="atc-meta">{user.isActive ? <span className="state-on">有効</span> : <span className="state-off">無効</span>}</td>
+                <td className="atc-meta"><span className="enr-badge">{enrollCount} 講座</span></td>
+                <td className="at-dim atc-meta">{range}</td>
+                <td className="at-actions atc-actions">
                   <Link className="link-btn" href={`/admin/users/${user.id}`}>編集</Link>
                   <Link className="link-btn" href={`/admin/users/${user.id}/enrollments`}>割当</Link>
                   {user.isActive && <ImpersonateButton studentId={user.id} variant="link" />}

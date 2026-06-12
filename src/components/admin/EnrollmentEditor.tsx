@@ -9,6 +9,7 @@ import React, { useState, useTransition } from "react";
 import Link from "next/link";
 import { Icons } from "@/components/shared/Icons";
 import { DateField } from "@/components/shared/DateField";
+import { DragScroll } from "@/components/shared/DragScroll";
 import { assignCourse, unassignCourse, ActionResult } from "@/app/admin-actions";
 import type { EnrollmentEditorData } from "@/lib/types";
 
@@ -20,7 +21,10 @@ export function EnrollmentEditor({ data }: { data: EnrollmentEditorData }) {
   return (
     <section className="panel">
       <div className="panel-head"><Icons.book size={19} /><h2>講座割り当て</h2><span className="count-badge">{data.rows.filter((r) => r.enrollStart).length} / {data.rows.length} 講座</span></div>
-      <table className="atable">
+      <p className="scroll-hint"><Icons.arrowRight size={12} />表は左右にドラッグ(スワイプ)できます</p>
+      <div className="tscroll-outer">
+      <DragScroll className="tscroll">
+      <table className="atable atable-scroll">
         <thead><tr><th>講座</th><th>公開期間</th><th>受講期間(開始 〜 終了)</th><th></th></tr></thead>
         <tbody>
           {data.rows.map((r) => (
@@ -28,6 +32,8 @@ export function EnrollmentEditor({ data }: { data: EnrollmentEditorData }) {
           ))}
         </tbody>
       </table>
+      </DragScroll>
+      </div>
       {err && <div className="form-err" style={{ marginTop: 14 }}><Icons.x size={15} />{err}</div>}
       <p className="ed-hint">割当を解除しても完了記録は削除されません(再割当で進捗が復元されます)。</p>
     </section>

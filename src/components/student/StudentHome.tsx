@@ -16,10 +16,14 @@ export function StudentHome({ courses }: { courses: CourseListItem[] }) {
   const router = useRouter();
   const params = useSearchParams();
   const { tweaks } = useTweaks();
+  // UX-3: モバイルでは検索パネルを折りたたみ、講座一覧を先に見せる
+  const [searchOpen, setSearchOpen] = React.useState(false);
 
   const q = params.get("q") ?? "";
   const statusFilter = (params.get("status") as StatusKey) ?? "all";
   const cat = params.get("cat");
+  // 適用中の絞り込み数(モバイルの折りたたみボタンにバッジ表示する)
+  const activeFilters = (q ? 1 : 0) + (cat ? 1 : 0) + (statusFilter !== "all" ? 1 : 0);
 
   function setParam(key: string, value: string | null) {
     const next = new URLSearchParams(params.toString());
@@ -78,11 +82,19 @@ export function StudentHome({ courses }: { courses: CourseListItem[] }) {
             ))}
           </div>
         </main>
-        <SearchSidebar
-          q={q} setQ={(v) => setParam("q", v || null)}
-          statusFilter={statusFilter} setStatusFilter={(v) => setParam("status", v === "all" ? null : v)}
-          cat={cat} setCat={(v) => setParam("cat", v)}
-          categories={categories} onClear={clear} counts={counts} />
+        <div className={"search-wrap" + (searchOpen ? " is-open" : "")}>
+          <button type="button" className="search-toggle" onClick={() => setSearchOpen((v) => !v)} aria-expanded={searchOpen}>
+            <Icons.search size={16} />
+            <span>検索・絞り込み</span>
+            {activeFilters > 0 && <span className="search-toggle-badge">{activeFilters}</span>}
+            <Icons.chevDown size={16} style={{ marginLeft: "auto", transform: searchOpen ? "rotate(180deg)" : undefined, transition: ".15s" }} />
+          </button>
+          <SearchSidebar
+            q={q} setQ={(v) => setParam("q", v || null)}
+            statusFilter={statusFilter} setStatusFilter={(v) => setParam("status", v === "all" ? null : v)}
+            cat={cat} setCat={(v) => setParam("cat", v)}
+            categories={categories} onClear={clear} counts={counts} />
+        </div>
       </div>
     </div>
   );

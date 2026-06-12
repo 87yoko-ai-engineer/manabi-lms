@@ -20,22 +20,23 @@ export default async function AdminCoursesPage() {
       </div>
       <section className="panel">
         <div className="panel-head"><Icons.book size={19} /><h2>講座一覧</h2><span className="count-badge">{courses.length}件</span></div>
-        <table className="atable">
+        {/* モバイルでは .atable-cards のCSSで「上段=講座+操作 / 下段=詳細」の2段カードに組み替わる */}
+        <table className="atable atable-cards">
           <thead><tr><th>講座</th><th>カテゴリ</th><th>区分</th><th>構成</th><th>公開期間</th><th></th></tr></thead>
           <tbody>
             {courses.map((c) => (
               <tr key={c.id}>
-                <td>
+                <td className="atc-main">
                   <div className="at-course">
                     <span className="at-cover" style={{ background: c.cover }}>{c.coverLabel}</span>
                     <div><span className="at-title">{c.title}</span><span className="at-sub">{c.subtitle}</span></div>
                   </div>
                 </td>
-                <td><span className="tag-soft">{c.category}</span></td>
-                <td><span className={"cover-tag sm " + (c.tag === "必須" ? "is-req" : "")}>{c.tag}</span></td>
-                <td className="at-dim">{c.chaptersCount}章 / {c.unitCount}ユニット / 約{c.minutes}分</td>
-                <td className="at-dim">{c.publishStart}<br />〜 {c.publishEnd}</td>
-                <td className="at-actions">
+                <td className="atc-meta"><span className="tag-soft">{c.category}</span></td>
+                <td className="atc-meta"><span className={"cover-tag sm " + (c.tag === "必須" ? "is-req" : "")}>{c.tag}</span></td>
+                <td className="at-dim atc-meta">{c.chaptersCount}章 / {c.unitCount}ユニット / 約{c.minutes}分</td>
+                <td className="at-dim atc-meta">{c.publishStart}<br />〜 {c.publishEnd}</td>
+                <td className="at-actions atc-actions">
                   <Link className="link-btn" href={`/admin/courses/${c.id}`}>編集</Link>
                   <DeleteCourseButton courseId={c.id} title={c.title} />
                 </td>

@@ -5,6 +5,7 @@
 import { Breadcrumb, Avatar } from "@/components/shared/ui";
 import { Icons, IconProps } from "@/components/shared/Icons";
 import { ImpersonateButton } from "@/components/admin/ImpersonateButton";
+import { DragScroll } from "@/components/shared/DragScroll";
 import { getAdminDashboard } from "@/lib/dal";
 import { statusOf } from "@/lib/access";
 
@@ -74,7 +75,10 @@ export default async function AdminDashboardPage() {
       {/* 受講者 × 講座 マトリクス */}
       <section className="panel">
         <div className="panel-head"><Icons.grid size={19} /><h2>受講者別 進捗一覧</h2><span className="count-badge">{students.length}名</span></div>
-        <div className="matrix-wrap">
+        {/* モバイル(720px以下)でのみ表示される横スクロールの案内 */}
+        <p className="scroll-hint"><Icons.arrowRight size={12} />表は左右にドラッグ(スワイプ)できます</p>
+        <div className="matrix-outer">
+        <DragScroll className="matrix-wrap">
           <table className="matrix">
             <thead>
               <tr>
@@ -111,6 +115,7 @@ export default async function AdminDashboardPage() {
               ))}
             </tbody>
           </table>
+        </DragScroll>
         </div>
       </section>
     </div>

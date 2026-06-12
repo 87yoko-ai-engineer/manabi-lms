@@ -56,7 +56,7 @@ svg{flex:none}
 .brand-dot{color:var(--brand)}
 .brand-admin{font-family:var(--num);font-weight:800;font-size:10.5px;letter-spacing:.12em;background:var(--ink);color:#fff;padding:3px 8px;border-radius:6px;margin-left:2px}
 .topnav-links{display:flex;align-items:center;gap:4px;margin-left:6px}
-.navlink{position:relative;display:flex;align-items:center;gap:8px;padding:9px 15px;border-radius:10px;color:var(--ink-3);font-weight:600;font-size:14px;transition:.15s}
+.navlink{position:relative;display:flex;align-items:center;gap:8px;padding:9px 15px;border-radius:10px;color:var(--ink-3);font-weight:600;font-size:14px;transition:.15s;white-space:nowrap}
 .navlink:hover{background:var(--line-2);color:var(--ink-2)}
 .navlink.is-active{background:color-mix(in srgb,var(--brand) 10%,#fff);color:var(--brand)}
 .nav-badge{position:absolute;top:4px;right:8px;background:#E8590C;color:#fff;font-family:var(--num);font-weight:700;font-size:10px;min-width:16px;height:16px;display:grid;place-items:center;border-radius:99px;padding:0 4px}
@@ -313,7 +313,8 @@ svg{flex:none}
 .dl-val{margin-left:auto;font-family:var(--num);font-weight:700;font-size:14px;color:var(--ink);white-space:nowrap}
 
 /* matrix */
-.matrix-wrap{overflow-x:auto;margin:0 calc(var(--pad) * -1) -8px}
+.matrix-outer{position:relative;margin:0 calc(var(--pad) * -1) -8px}
+.matrix-wrap{overflow-x:auto}
 .matrix{width:100%;border-collapse:collapse;min-width:600px}
 .matrix th{font-size:11.5px;color:var(--ink-3);font-weight:700;text-align:center;padding:6px 12px 12px;border-bottom:2px solid var(--line)}
 .matrix th.mx-name{text-align:left;padding-left:var(--pad)}
@@ -465,6 +466,54 @@ svg{flex:none}
 /* テーブル内(受講期間)ではコンパクトに */
 .enr-row-dates .datef{flex:none;width:138px}
 .enr-row-dates .datef-btn{padding:7px 9px;font-size:12.5px}
+
+/* ---------- mobile search collapse (UX-3) ---------- */
+/* デスクトップでは折りたたみを使わない: wrapperをレイアウトから消して
+   .searchbar を従来どおりグリッドの子として振る舞わせる */
+.search-wrap{display:contents}
+.search-toggle{display:none;align-items:center;gap:8px;width:100%;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:13px 16px;font-size:14px;font-weight:700;color:var(--ink-2)}
+.search-toggle-badge{background:var(--brand);color:#fff;font-family:var(--num);font-weight:700;font-size:11px;min-width:18px;height:18px;display:grid;place-items:center;border-radius:99px;padding:0 5px}
+
+/* ---------- admin dashboard mobile (UX-6) ---------- */
+.scroll-hint{display:none;font-size:11.5px;color:var(--ink-4);margin:0 0 8px;align-items:center;gap:5px}
+@media(max-width:720px){
+  /* 状態分布: リングと凡例を縦積みにして人数の見切れを防ぐ */
+  .dist{flex-direction:column;gap:16px}
+  .dist-legend{width:100%}
+}
+
+/* ---------- admin table scroll (UX-6) ---------- */
+.tscroll-outer{position:relative}
+.tscroll{overflow-x:auto}
+/* 表が横スクロールになるのは1080px以下(画面幅がPCの全幅より狭いとき全般) */
+@media(max-width:1080px){
+  /* 横スクロールできることを明示する(マトリクス・講座割り当てで使用) */
+  .scroll-hint{display:flex}
+  /* 右端をフェードさせ「列が続いている」ことを視覚的に伝える */
+  .matrix-outer::after,.tscroll-outer::after{content:"";position:absolute;top:0;right:0;bottom:0;width:36px;background:linear-gradient(to left,var(--card) 12%,transparent);pointer-events:none}
+  /* 受講者(名前)列を固定し、横スクロール中も誰の行か分かるようにする */
+  .matrix th.mx-name,.matrix td.mx-name{position:sticky;left:0;background:var(--card);z-index:2;box-shadow:6px 0 8px -6px rgba(15,23,42,.12)}
+  /* 横スクロール型テーブル(講座割り当て)は文字を折り返さない(縦潰れ防止) */
+  .atable-scroll th,.atable-scroll td{white-space:nowrap}
+}
+
+/* ---------- admin table cards (モバイルの2段表示) ---------- */
+/* 講座管理・受講者管理は横スクロールではなく、
+   1件 = 「上段: 名前+操作ボタン / 下段: 詳細情報」の2段カードに組み替える */
+@media(max-width:900px){
+  .atable-cards thead{display:none}
+  .atable-cards,.atable-cards tbody{display:block}
+  .atable-cards tr{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:14px 2px;border-bottom:1px solid var(--line-2)}
+  .atable-cards tr:last-child{border-bottom:none}
+  .atable-cards td{display:block;padding:0;border:none;white-space:normal}
+  /* 上段: 主役(講座名/受講者名)。min-widthで「縮みすぎて1文字ずつ縦に潰れる」のを防ぎ、
+     入り切らない要素は次の行へ折り返させる */
+  .atable-cards td.atc-main{order:1;flex:1 1 0;min-width:55%}
+  .atable-cards td.atc-actions{order:2;display:flex;gap:12px;flex:none;margin-left:auto;white-space:nowrap}
+  /* 下段: 詳細情報。flex:none(縮まない)にすることで潰れず折り返しに回る */
+  .atable-cards td.atc-meta{order:3;flex:none;max-width:100%;font-size:12px}
+  .atable-cards td.atc-meta br{display:none} /* 公開期間はモバイルでは1行で表示 */
+}
 .ed-ibtn{width:30px;height:30px;display:grid;place-items:center;border-radius:8px;color:var(--ink-3);transition:.13s;flex:none}
 .ed-ibtn:hover{background:var(--line-2);color:var(--ink)}
 .ed-ibtn.danger:hover{background:#FFF0F0;color:#C92A2A}
@@ -484,6 +533,9 @@ svg{flex:none}
 .enr-unassigned:hover{opacity:1}
 
 @media(max-width:900px){
+  /* 狭い幅ではヘッダーの余白を詰めてメニューの折り返しを防ぐ */
+  .topnav-inner{gap:14px}
+  .navlink{padding:9px 10px;gap:6px}
   .aform-grid{grid-template-columns:1fr}
   .aform-grid .span-2{grid-column:auto}
   .ed-unit,.ed-add{grid-template-columns:1fr}
@@ -499,7 +551,11 @@ svg{flex:none}
 /* ---------- responsive ---------- */
 @media(max-width:1080px){
   .home-grid{grid-template-columns:1fr}
-  .searchbar{position:static;order:-1}
+  /* UX-3: 1カラム表示では検索を折りたたみ、講座一覧を主役にする */
+  .search-wrap{display:block;order:-1}
+  .search-toggle{display:flex}
+  .search-wrap .searchbar{display:none;position:static}
+  .search-wrap.is-open .searchbar{display:block;margin-top:10px}
   .uv-grid{grid-template-columns:1fr}
   .uv-side{position:static;max-height:none}
   .cd-hero{grid-template-columns:1fr}
