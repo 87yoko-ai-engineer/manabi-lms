@@ -100,10 +100,12 @@ export const COURSES: Course[] = [
     publishStart: "2026/04/01", publishEnd: "2027/03/31",
     accent: "#1098AD", cover: "linear-gradient(135deg,#0C8599 0%,#1098AD 55%,#22B8CF 100%)", coverLabel: "CC",
     chapters: [
-      { id: "ch-2-1", title: "Chapter 01 — Claude Code をはじめる", units: [
+      { id: "ch-2-1", title: "Chapter 01 — 導入と基本コマンド", units: [
         v("un-2-1-1", "Claude Code 超入門 知っておくべきコマンド", 17, "dsVEVt6xZI4"),
-        v("un-2-1-2", "Claude Code 実践 自分専用ツールを開発", 22, "M6O9mh8oLQ0"),
-        v("un-2-1-3", "Claude Code 神機能9選", 19, "CcZjTpUM6eg"),
+      ]},
+      { id: "ch-2-2", title: "Chapter 02 — 実践と神機能", units: [
+        v("un-2-2-1", "Claude Code 実践 自分専用ツールを開発", 22, "M6O9mh8oLQ0"),
+        v("un-2-2-2", "Claude Code 神機能9選", 19, "CcZjTpUM6eg"),
       ]},
     ],
   },
@@ -118,10 +120,12 @@ export const COURSES: Course[] = [
     publishStart: "2026/05/01", publishEnd: "2027/04/30",
     accent: "#6741D9", cover: "linear-gradient(135deg,#5F3DC4 0%,#6741D9 55%,#845EF7 100%)", coverLabel: "AI",
     chapters: [
-      { id: "ch-3-1", title: "Chapter 01 — 環境を整え、Webアプリを作る", units: [
+      { id: "ch-3-1", title: "Chapter 01 — 開発環境を整える", units: [
         v("un-3-1-1", "AIコーディングにはこの環境が最強", 16, "2KdZrR2HahE"),
-        v("un-3-1-2", "Claude Code 実演 Webサイト作成", 35, "X32pPFe5EIU"),
-        v("un-3-1-3", "Claude Code でデザイン爆上げする神連携", 20, "Yxg2AcXJ9Qk"),
+      ]},
+      { id: "ch-3-2", title: "Chapter 02 — Webアプリを開発する", units: [
+        v("un-3-2-1", "Claude Code 実演 Webサイト作成", 35, "X32pPFe5EIU"),
+        v("un-3-2-2", "Claude Code でデザイン爆上げする神連携", 20, "Yxg2AcXJ9Qk"),
       ]},
     ],
   },
@@ -155,10 +159,12 @@ export const COURSES: Course[] = [
     publishStart: "2026/05/01", publishEnd: "2027/04/30",
     accent: "#0CA678", cover: "linear-gradient(135deg,#087F5B 0%,#0CA678 55%,#20C997 100%)", coverLabel: "SKL",
     chapters: [
-      { id: "ch-5-1", title: "Chapter 01 — Skills とエージェントを設計する", units: [
+      { id: "ch-5-1", title: "Chapter 01 — Skills の基礎", units: [
         v("un-5-1-1", "Agent Skills作成 超入門", 16, "3KhJCMYxRs0"),
-        v("un-5-1-2", "Claude Skills 実演 オリジナルSkills作成", 23, "tRJdn5MPefE"),
-        v("un-5-1-3", "Claude Managed Agents 完全解説", 25, "_fMxK74D1f0"),
+      ]},
+      { id: "ch-5-2", title: "Chapter 02 — 実践と応用", units: [
+        v("un-5-2-1", "Claude Skills 実演 オリジナルSkills作成", 23, "tRJdn5MPefE"),
+        v("un-5-2-2", "Claude Managed Agents 完全解説", 25, "_fMxK74D1f0"),
       ]},
     ],
   },
