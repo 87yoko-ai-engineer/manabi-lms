@@ -7,7 +7,7 @@
 転職ポートフォリオ用の動画学習プラットフォーム(LMS)。**このフォルダ(`C:\Users\masah\dev\manabi-lms`)が実装の本体**で、唯一のソースコード置き場。
 
 - 公開URL: https://manabi-lms.vercel.app
-- GitHub: https://github.com/87yoko-ai-engineer/manabi-lms (Private)
+- GitHub: https://github.com/87yoko-ai-engineer/manabi-lms (Public)
 - **masterへのpushで本番へ自動デプロイされる**(Vercel連携済み)。push前にビルドとテストを通すこと
 
 ## フォルダの役割分担(重要)
