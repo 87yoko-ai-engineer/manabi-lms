@@ -79,7 +79,7 @@ flowchart LR
 
 ```bash
 npm install
-# .env に DATABASE_URL(Neon接続文字列)と AUTH_SECRET を設定
+cp .env.example .env     # 見本をコピーし、DATABASE_URL と AUTH_SECRET を設定
 npx prisma migrate dev   # テーブル作成
 npm run seed             # デモデータ投入(再実行可能)
 npm run dev
