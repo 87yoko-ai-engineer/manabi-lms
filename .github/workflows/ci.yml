@@ -1,0 +1,42 @@
+# ============================================================
+# CI — push / Pull Request ごとに品質チェックを自動実行する
+# lint → 型チェック → ユニットテスト → 本番ビルド の順。
+# どれか1つでも失敗すると赤くなり、壊れたコードに気づける。
+# (本番デプロイ自体は従来どおり Vercel の master 連携が行う)
+# ============================================================
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: 依存関係のインストール
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: 型チェック (tsc --noEmit)
+        run: npm run typecheck
+
+      - name: ユニットテスト (Vitest)
+        run: npm test
+
+      - name: 本番ビルド (next build)
+        run: npm run build
+        env:
+          # ビルド時はDBに接続しない(全ページ動的レンダリング)ためダミーで良い
+          DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+          AUTH_SECRET: "ci-dummy-secret"

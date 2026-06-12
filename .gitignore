@@ -41,3 +41,6 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# Claude Code ローカル設定(開発サーバー起動設定など、個人環境依存)
+.claude/

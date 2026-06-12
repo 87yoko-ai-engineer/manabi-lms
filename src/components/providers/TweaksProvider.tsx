@@ -28,6 +28,9 @@ export function TweaksProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(LS_KEY);
+      // SSRではlocalStorageを読めないため、初期描画後に1度だけ読み込んで反映する
+      // (lazy initializerで読むとサーバーとクライアントのHTMLが食い違いhydrationエラーになる)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (raw) setTweaks({ ...DEFAULT_TWEAKS, ...JSON.parse(raw) });
     } catch {
       // 壊れた保存データは無視
