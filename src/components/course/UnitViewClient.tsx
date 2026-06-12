@@ -4,14 +4,13 @@
 // 完了ボタンは Server Action(toggleUnitProgress)でDBに記録する
 // ============================================================
 import React, { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Breadcrumb } from "@/components/shared/ui";
 import { Icons } from "@/components/shared/Icons";
 import { toggleUnitProgress } from "@/app/actions";
 import type { UnitViewDTO } from "@/lib/types";
 
 export function UnitViewClient({ data }: { data: UnitViewDTO }) {
-  const router = useRouter();
   const [pending, start] = useTransition();
   const [actionErr, setActionErr] = useState("");
   const { course, chapter, unit, done, access, index, total, prevId, nextId, sidebar } = data;
@@ -22,15 +21,16 @@ export function UnitViewClient({ data }: { data: UnitViewDTO }) {
   const uIdx = chIdx >= 0 ? sidebar[chIdx].units.findIndex((u) => u.id === unit.id) : -1;
   const unitNo = chIdx >= 0 && uIdx >= 0 ? `${chIdx + 1}-${uIdx + 1}` : null;
 
-  function nav(uid: string) {
-    router.push(`/courses/${course.id}/units/${uid}`);
+  // UX-4: ユニット間の移動は本物のリンクにする(新しいタブで開く・URLコピーを可能に)
+  function unitHref(uid: string) {
+    return `/courses/${course.id}/units/${uid}`;
   }
 
   function toggle() {
     setActionErr("");
     start(async () => {
       const res = await toggleUnitProgress(unit.id);
-      if (!res.ok) setActionErr(res.error ?? "エラーが発生しました");
+      if (!res.ok) setActionErr(res.error);
     });
   }
 
@@ -80,8 +80,13 @@ export function UnitViewClient({ data }: { data: UnitViewDTO }) {
                       : <><Icons.check size={20} />このユニットを完了にする</>}
               </button>
               <div className="uv-nav">
-                <button className="btn-ghost" disabled={!prevId} onClick={() => prevId && nav(prevId)}><Icons.chevLeft size={18} />前へ</button>
-                <button className="btn-ghost" disabled={!nextId} onClick={() => nextId && nav(nextId)}>次へ<Icons.chevRight size={18} /></button>
+                {/* 端(前/次がない)では押せないことを示すため disabled なボタンで代替する(リンクに disabled はないため) */}
+                {prevId
+                  ? <Link className="btn-ghost" href={unitHref(prevId)}><Icons.chevLeft size={18} />前へ</Link>
+                  : <button className="btn-ghost" disabled><Icons.chevLeft size={18} />前へ</button>}
+                {nextId
+                  ? <Link className="btn-ghost" href={unitHref(nextId)}>次へ<Icons.chevRight size={18} /></Link>
+                  : <button className="btn-ghost" disabled>次へ<Icons.chevRight size={18} /></button>}
               </div>
             </div>
             {actionErr && <div className="login-err" style={{ marginTop: 16 }}><Icons.x size={15} />{actionErr}</div>}
@@ -92,7 +97,7 @@ export function UnitViewClient({ data }: { data: UnitViewDTO }) {
         <aside className="uv-side">
           <div className="uv-side-head">
             <span>{course.title}</span>
-            <button className="uv-side-back" onClick={() => router.push(`/courses/${course.id}`)}>講座詳細へ</button>
+            <Link className="uv-side-back" href={`/courses/${course.id}`}>講座詳細へ</Link>
           </div>
           <div className="uv-side-list">
             {sidebar.map((ch, ci) => (
@@ -101,11 +106,11 @@ export function UnitViewClient({ data }: { data: UnitViewDTO }) {
                 {ch.units.map((u, ui) => {
                   const cur = u.id === unit.id;
                   return (
-                    <button key={u.id} className={"uv-side-unit" + (cur ? " is-cur" : "") + (u.done ? " is-done" : "")} onClick={() => nav(u.id)}>
+                    <Link key={u.id} className={"uv-side-unit" + (cur ? " is-cur" : "") + (u.done ? " is-done" : "")} href={unitHref(u.id)}>
                       <span className={"uv-side-check " + (u.done ? "on" : "")}>{u.done ? <Icons.check size={13} /> : cur ? <Icons.play size={11} /> : ""}</span>
                       <span className="uv-side-title"><span className="unit-no">{ci + 1}-{ui + 1}.</span> {u.title}</span>
                       <span className="uv-side-min">{u.estimatedMinutes}分</span>
-                    </button>
+                    </Link>
                   );
                 })}
               </div>

@@ -2,15 +2,18 @@
 // ============================================================
 // Manabi LMS — トップナビゲーション
 // モバイル(720px以下)ではナビをハンバーガーメニューに切り替える。
+// UX-4: ナビは本物のリンク(<Link>)にする。「新しいタブで開く」「URLコピー」
+// などブラウザ標準の操作を可能にし、遷移中のスピナーは useLinkStatus で出す。
+// 未保存変更の離脱確認は unsaved.ts のクリック捕捉(a[href])が担う。
 // ============================================================
 import React from "react";
-import { usePathname, useRouter } from "next/navigation";
+import Link, { useLinkStatus } from "next/link";
+import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { Icons, IconProps } from "./Icons";
 import { Avatar } from "./ui";
 import type { UiUser } from "@/lib/types";
 import { NEWS_COUNT } from "@/lib/news";
-import { confirmIfUnsaved } from "@/lib/unsaved";
 
 interface NavItem {
   key: string;
@@ -31,23 +34,20 @@ const STUDENT_ITEMS: NavItem[] = [
   { key: "news", href: "/news", label: "お知らせ", icon: Icons.bell, badge: NEWS_COUNT },
 ];
 
+/**
+ * 親の<Link>が遷移中ならアイコンの代わりにスピナーを表示する。
+ * useLinkStatus はリンクごとに独立した pending を返すため、
+ * 「クリックされたリンクだけ」がスピナーになる。
+ */
+function NavIcon({ icon, spinnerStyle }: { icon: React.ReactNode; spinnerStyle?: React.CSSProperties }) {
+  const { pending } = useLinkStatus();
+  return pending ? <span className="spinner" style={{ width: 18, height: 18, ...spinnerStyle }} /> : <>{icon}</>;
+}
+
 export function TopNav({ user, adminMode }: { user: UiUser; adminMode: boolean }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [signingOut, setSigningOut] = React.useState(false);
-  // ナビゲーション中のボタンにスピナーを出すための状態。
-  // スピナー表示は「クリックされた かつ 遷移中」の導出値なので、遷移が終われば自然に消える(effect不要)。
-  const [navPending, startNav] = React.useTransition();
-  const [clickedKey, setClickedKey] = React.useState<string | null>(null);
   const [menuOpen, setMenuOpen] = React.useState(false);
-
-  function go(key: string, href: string) {
-    // 未保存のカリキュラム変更などがあれば、移動前に確認する(押し忘れた変更が静かに消えるのを防ぐ)
-    if (!confirmIfUnsaved()) return;
-    setClickedKey(key);
-    setMenuOpen(false);
-    startNav(() => router.push(href));
-  }
 
   const items = adminMode ? ADMIN_ITEMS : STUDENT_ITEMS;
   const activeKey = adminMode
@@ -57,28 +57,27 @@ export function TopNav({ user, adminMode }: { user: UiUser; adminMode: boolean }
     : pathname.startsWith("/news") ? "news" : "home";
 
   function renderItems(extraClass: string) {
-    return items.map((it) => {
-      const busy = clickedKey === it.key && navPending;
-      return (
-        <button key={it.key} className={extraClass + (activeKey === it.key ? " is-active" : "")} disabled={navPending} onClick={() => go(it.key, it.href)}>
-          {busy ? <span className="spinner" style={{ width: 18, height: 18 }} /> : <it.icon size={20} />}
-          <span>{it.label}</span>
-          {it.badge && <span className="nav-badge">{it.badge}</span>}
-        </button>
-      );
-    });
+    return items.map((it) => (
+      <Link key={it.key} href={it.href}
+        className={extraClass + (activeKey === it.key ? " is-active" : "")}
+        onClick={() => setMenuOpen(false)}>
+        <NavIcon icon={<it.icon size={20} />} />
+        <span>{it.label}</span>
+        {it.badge && <span className="nav-badge">{it.badge}</span>}
+      </Link>
+    ));
   }
 
   return (
     <header className="topnav">
       <div className="topnav-inner">
-        <div className="brand" onClick={() => go("brand", adminMode ? "/admin" : "/")}>
+        <Link className="brand" href={adminMode ? "/admin" : "/"}>
           <span className="brand-mark">
-            {clickedKey === "brand" && navPending ? <span className="spinner" style={{ color: "#fff" }} /> : <Icons.layers size={20} />}
+            <NavIcon icon={<Icons.layers size={20} />} spinnerStyle={{ color: "#fff" }} />
           </span>
           <span className="brand-word">Manabi<span className="brand-dot">.</span></span>
           {adminMode && <span className="brand-admin">ADMIN</span>}
-        </div>
+        </Link>
         <nav className="topnav-links">{renderItems("navlink")}</nav>
         <div className="topnav-right">
           <div className="topnav-user">

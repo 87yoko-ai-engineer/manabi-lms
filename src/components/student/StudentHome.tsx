@@ -76,7 +76,7 @@ export function StudentHome({ courses }: { courses: CourseListItem[] }) {
           )}
           <div className="ccard-list">
             {filtered.map((c) => (
-              <CourseCard key={c.id} course={c} onOpen={() => router.push(`/courses/${c.id}`)} />
+              <CourseCard key={c.id} course={c} href={`/courses/${c.id}`} />
             ))}
           </div>
         </main>

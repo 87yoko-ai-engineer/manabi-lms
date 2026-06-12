@@ -3,6 +3,7 @@
 // Manabi LMS — 受講者ホーム用部品 (SummaryCard / CourseCard / SearchSidebar)
 // ============================================================
 import React from "react";
+import Link from "next/link";
 import { Icons } from "@/components/shared/Icons";
 import { ProgressBar, StatusPill } from "@/components/shared/ui";
 import type { CourseListItem } from "@/lib/types";
@@ -29,13 +30,14 @@ export function SummaryCard({ courses }: { courses: CourseListItem[] }) {
   );
 }
 
-export function CourseCard({ course, onOpen }: {
+// UX-4: カード全体を<Link>にして「新しいタブで開く」等のブラウザ標準操作を可能にする
+export function CourseCard({ course, href }: {
   course: CourseListItem;
-  onOpen: () => void;
+  href: string;
 }) {
   const locked = !course.access.viewable;
   return (
-    <article className={"ccard row" + (locked ? " is-locked" : "")} onClick={onOpen}>
+    <Link className={"ccard row" + (locked ? " is-locked" : "")} href={href}>
       <div className="ccard-cover" style={{ background: course.cover }}>
         <span className="cover-label">{course.coverLabel}</span>
         <span className={"cover-tag " + (course.tag === "必須" ? "is-req" : "")}>{course.tag}</span>
@@ -58,7 +60,7 @@ export function CourseCard({ course, onOpen }: {
           <ProgressBar pct={course.pct} height={8} />
         </div>
       </div>
-    </article>
+    </Link>
   );
 }
 

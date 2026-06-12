@@ -15,6 +15,9 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--bd);-webkit-fo
 body{line-height:1.6}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 input{font-family:inherit}
+/* UX-4: ナビゲーションをbutton+router.pushから<a>(Link)に変えたため、リンク既定の下線・青色を打ち消す */
+a.navlink,a.mobile-navlink,a.brand,a.ccard,a.unit,a.uv-side-unit,a.uv-side-back,a.btn-primary,a.btn-ghost{text-decoration:none}
+a.ccard,a.unit{color:inherit}
 h1,h2,h3{font-family:var(--hd);font-weight:700;letter-spacing:.01em;line-height:1.3}
 svg{flex:none}
 ::selection{background:color-mix(in srgb,var(--brand) 22%,transparent)}

@@ -7,9 +7,9 @@
 // (Next.jsのアプリ内遷移はページ再読み込みではないため発火しない)。
 // そこで、
 //   - beforeunload: リロード・タブ閉じ用
-//   - クリック捕捉: アプリ内リンク(<a>)用
-//   - confirmIfUnsaved(): TopNav等のボタン遷移(router.push)用
-// の3経路で確認を出す。
+//   - クリック捕捉: アプリ内リンク(<a>)用。ナビゲーションはUX-4で
+//     すべて <Link>(=<a>)に統一したため、この捕捉で全遷移をカバーできる
+// の2経路で確認を出す。
 // ============================================================
 
 let count = 0;
@@ -48,9 +48,4 @@ export function trackUnsaved(): () => void {
       document.removeEventListener("click", onClickCapture, true);
     }
   };
-}
-
-/** router.push 等で遷移する前に呼ぶ。true=遷移してよい */
-export function confirmIfUnsaved(): boolean {
-  return count === 0 || window.confirm(MSG);
 }
