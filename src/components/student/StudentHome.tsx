@@ -42,6 +42,24 @@ export function StudentHome({ courses }: { courses: CourseListItem[] }) {
 
   function clear() { router.replace("/", { scroll: false }); }
 
+  // M-6: 講座が1つも割り当てられていない場合は、検索や集計を出しても
+  // 意味がないため、状況の説明だけの画面にする(「壊れている?」と不安にさせない)
+  if (courses.length === 0) {
+    return (
+      <div className="page">
+        <Breadcrumb items={[{ label: "ホーム" }, { label: "講座一覧" }]} />
+        <div className="empty" style={{ paddingTop: 70, paddingBottom: 70 }}>
+          <Icons.book size={34} />
+          <p style={{ fontSize: 15.5, fontWeight: 700, color: "var(--ink-2)" }}>受講できる講座がまだありません</p>
+          <p style={{ fontSize: 13, color: "var(--ink-4)", maxWidth: 360, lineHeight: 1.7 }}>
+            講座は管理者が割り当てると、ここに表示されます。
+            しばらく経っても表示されない場合は、管理者にお問い合わせください。
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="page">
       <Breadcrumb items={[{ label: "ホーム" }, { label: "講座一覧" }]} />
