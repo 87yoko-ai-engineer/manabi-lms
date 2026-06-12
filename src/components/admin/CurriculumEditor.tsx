@@ -96,8 +96,11 @@ function ChapterEditor({ chapter, index, total, onError }: {
         )}
         <div className="ed-row-btns">
           {pending && title === chapter.title && <span className="spinner sm" style={{ marginRight: 4, color: "var(--brand)" }} />}
-          <button className="ed-ibtn" title="上へ" disabled={pending || index === 0} onClick={() => run(() => moveChapter(chapter.id, "up"))}><Icons.chevDown size={17} style={{ transform: "rotate(180deg)" }} /></button>
-          <button className="ed-ibtn" title="下へ" disabled={pending || index === total - 1} onClick={() => run(() => moveChapter(chapter.id, "down"))}><Icons.chevDown size={17} /></button>
+          {/* 並び替えはチャプターが2つ以上あるときだけ意味を持つ(1つだけなら出さない) */}
+          {total > 1 && <>
+            <button className="ed-ibtn" title="上へ移動" disabled={pending || index === 0} onClick={() => run(() => moveChapter(chapter.id, "up"))}><Icons.chevDown size={17} style={{ transform: "rotate(180deg)" }} /></button>
+            <button className="ed-ibtn" title="下へ移動" disabled={pending || index === total - 1} onClick={() => run(() => moveChapter(chapter.id, "down"))}><Icons.chevDown size={17} /></button>
+          </>}
           <button className="ed-ibtn danger" title="チャプターを削除" disabled={pending} onClick={() => {
             if (confirm(`「${chapter.title}」を削除しますか?\n配下のユニットと受講者の完了記録も削除されます。`)) run(() => deleteChapter(chapter.id));
           }}><Icons.x size={16} /></button>
@@ -110,7 +113,10 @@ function ChapterEditor({ chapter, index, total, onError }: {
         <div className="ed-add">
           <div className="fld-in"><input value={nu.title} onChange={(e) => setNu({ ...nu, title: e.target.value })} placeholder="新しいユニット名" /></div>
           <div className="fld-in"><input value={nu.vid} onChange={(e) => setNu({ ...nu, vid: e.target.value })} placeholder="YouTube動画ID / URL" /></div>
-          <div className="fld-in"><input value={nu.min} onChange={(e) => setNu({ ...nu, min: e.target.value })} placeholder="分" inputMode="numeric" /></div>
+          <div className="fld-in">
+            <input type="number" min={1} value={nu.min} onChange={(e) => setNu({ ...nu, min: e.target.value })} placeholder="20" inputMode="numeric" title="学習時間目安(分)" />
+            <span className="fld-suffix">分</span>
+          </div>
           <button className="btn-ghost" disabled={pending} onClick={() => {
             onError("");
             setAddBusy(true);
@@ -152,7 +158,10 @@ function UnitEditor({ unit, index, total, onError }: {
     <div className="ed-unit">
       <div className="fld-in"><input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
       <div className="fld-in"><input value={form.vid} onChange={(e) => setForm({ ...form, vid: e.target.value })} title="YouTube動画ID" /></div>
-      <div className="fld-in"><input value={form.min} onChange={(e) => setForm({ ...form, min: e.target.value })} inputMode="numeric" title="学習時間目安(分)" /></div>
+      <div className="fld-in">
+        <input type="number" min={1} value={form.min} onChange={(e) => setForm({ ...form, min: e.target.value })} inputMode="numeric" title="学習時間目安(分)" />
+        <span className="fld-suffix">分</span>
+      </div>
       <div className="ed-row-btns">
         {pending && <span className="spinner sm" style={{ marginRight: 4, color: "var(--brand)" }} />}
         {dirty && !pending && (
@@ -161,8 +170,11 @@ function UnitEditor({ unit, index, total, onError }: {
             <Icons.check size={14} />保存
           </button>
         )}
-        <button className="ed-ibtn" title="上へ" disabled={pending || index === 0} onClick={() => run(() => moveUnit(unit.id, "up"))}><Icons.chevDown size={16} style={{ transform: "rotate(180deg)" }} /></button>
-        <button className="ed-ibtn" title="下へ" disabled={pending || index === total - 1} onClick={() => run(() => moveUnit(unit.id, "down"))}><Icons.chevDown size={16} /></button>
+        {/* 並び替えはユニットが2つ以上あるときだけ表示(1つだけなら意味がない) */}
+        {total > 1 && <>
+          <button className="ed-ibtn" title="上へ移動" disabled={pending || index === 0} onClick={() => run(() => moveUnit(unit.id, "up"))}><Icons.chevDown size={16} style={{ transform: "rotate(180deg)" }} /></button>
+          <button className="ed-ibtn" title="下へ移動" disabled={pending || index === total - 1} onClick={() => run(() => moveUnit(unit.id, "down"))}><Icons.chevDown size={16} /></button>
+        </>}
         <button className="ed-ibtn danger" title="ユニットを削除" disabled={pending} onClick={() => {
           if (confirm(`「${unit.title}」を削除しますか?\n受講者の完了記録も削除されます。`)) run(() => deleteUnit(unit.id));
         }}><Icons.x size={15} /></button>
