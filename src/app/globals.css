@@ -425,14 +425,46 @@ svg{flex:none}
 .ed-chapter-head{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--soft);border-bottom:1px solid var(--line-2)}
 .ed-chapter-head .fld-in{flex:1;background:#fff}
 .ed-units{padding:8px 14px 12px}
-.ed-unit{display:grid;grid-template-columns:1fr 170px 90px auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line-2)}
+.ed-unit{display:grid;grid-template-columns:1fr 170px 104px auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line-2)}
 .ed-unit:last-child{border-bottom:none}
 .ed-unit .fld-in{background:var(--soft)}
 .ed-unit .fld-in input{padding:8px 0;font-size:13px}
-.ed-add{display:grid;grid-template-columns:1fr 170px 90px auto;gap:8px;align-items:center;margin-top:10px;padding-top:12px;border-top:1px solid var(--line-2)}
+.ed-add{display:grid;grid-template-columns:1fr 170px 104px auto;gap:8px;align-items:center;margin-top:10px;padding-top:12px;border-top:1px solid var(--line-2)}
 .ed-add .fld-in{background:var(--soft)}
 .ed-add .fld-in input{padding:8px 0;font-size:13px}
-.ed-row-btns{display:flex;gap:2px;align-items:center}
+/* 並び替え・削除のボタン群。入力欄(特に数値の増減ボタン)と取り違えられないよう、
+   背景付きのグループとして視覚的に切り離す */
+.ed-row-btns{display:flex;gap:2px;align-items:center;background:var(--soft);border:1px solid var(--line-2);border-radius:9px;padding:2px 3px}
+.ed-row-btns .ed-ibtn:hover{background:#fff}
+/* 単位サフィックス(「分」)— 入力しても常に表示される */
+.fld-suffix{flex:none;color:var(--ink-4);font-size:12px;font-weight:600}
+/* 学習時間欄の増減ボタンはホバー時だけでなく常に表示する */
+.ed-unit input[type="number"]::-webkit-inner-spin-button,
+.ed-add input[type="number"]::-webkit-inner-spin-button{opacity:1}
+/* number input は標準の最小幅が広く、狭い枠では「分」や増減ボタンが
+   枠の外にはみ出してしまうため、縮小を許可する */
+.ed-unit .fld-in input[type="number"],
+.ed-add .fld-in input[type="number"]{min-width:0;width:100%}
+
+/* ---------- date picker (UX-12) ---------- */
+.datef{position:relative;flex:1;min-width:0}
+.datef-btn{display:flex;align-items:center;gap:8px;width:100%;background:var(--soft);border:1.5px solid var(--line);border-radius:var(--r-sm);padding:11px 12px;font-size:14px;color:var(--ink);font-family:var(--num);transition:.15s;text-align:left}
+.datef-btn:hover{border-color:var(--brand)}
+.datef-btn:focus-visible{border-color:var(--brand);box-shadow:0 0 0 4px color-mix(in srgb,var(--brand) 12%,transparent);outline:none}
+.datef-empty{color:var(--ink-4);font-family:inherit}
+.datef-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:70;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh-lg);padding:12px;width:258px;animation:twin .15s ease}
+.datef-head{display:flex;gap:8px;margin-bottom:10px}
+.datef-head select{flex:1;padding:7px 8px;border:1.5px solid var(--line);border-radius:8px;background:var(--soft);font-size:13px;font-weight:600;color:var(--ink);font-family:inherit;outline:none}
+.datef-head select:focus{border-color:var(--brand)}
+.datef-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.datef-wd{text-align:center;font-size:10.5px;font-weight:700;color:var(--ink-4);padding:4px 0}
+.datef-day{height:30px;border-radius:8px;font-size:13px;font-family:var(--num);color:var(--ink-2);transition:.12s}
+.datef-day:hover{background:var(--line-2)}
+.datef-day.is-today{box-shadow:inset 0 0 0 1.5px var(--brand);color:var(--brand);font-weight:700}
+.datef-day.is-sel{background:var(--brand);color:#fff;font-weight:700}
+/* テーブル内(受講期間)ではコンパクトに */
+.enr-row-dates .datef{flex:none;width:138px}
+.enr-row-dates .datef-btn{padding:7px 9px;font-size:12.5px}
 .ed-ibtn{width:30px;height:30px;display:grid;place-items:center;border-radius:8px;color:var(--ink-3);transition:.13s;flex:none}
 .ed-ibtn:hover{background:var(--line-2);color:var(--ink)}
 .ed-ibtn.danger:hover{background:#FFF0F0;color:#C92A2A}

@@ -6,6 +6,7 @@
 import React, { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Icons } from "@/components/shared/Icons";
+import { DateField } from "@/components/shared/DateField";
 import { createCourse, updateCourse, CourseInput } from "@/app/admin-actions";
 import type { AdminCourseEdit } from "@/lib/types";
 
@@ -83,14 +84,14 @@ export function CourseForm({ course }: { course?: AdminCourseEdit }) {
           <span>学習ゴール(改行区切り)</span>
           <div className="fld-in"><textarea value={form.goals.join("\n")} onChange={(e) => set("goals", e.target.value.split("\n"))} placeholder={"APIの基本概念を理解する\nAPIキーを取得できる"} /></div>
         </label>
-        <label className="fld">
-          <span>公開開始日 *</span>
-          <div className="fld-in"><input type="date" value={form.publishStart} onChange={(e) => set("publishStart", e.target.value)} /></div>
-        </label>
-        <label className="fld">
-          <span>公開終了日 *</span>
-          <div className="fld-in"><input type="date" value={form.publishEnd} onChange={(e) => set("publishEnd", e.target.value)} /></div>
-        </label>
+        <div className="fld">
+          <span style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: "var(--ink-2)", marginBottom: 7 }}>公開開始日 *</span>
+          <DateField value={form.publishStart} onChange={(v) => set("publishStart", v)} />
+        </div>
+        <div className="fld">
+          <span style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: "var(--ink-2)", marginBottom: 7 }}>公開終了日 *</span>
+          <DateField value={form.publishEnd} onChange={(v) => set("publishEnd", v)} />
+        </div>
         <div className="fld">
           <span style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: "var(--ink-2)", marginBottom: 7 }}>テーマカラー</span>
           <div className="sw-row">

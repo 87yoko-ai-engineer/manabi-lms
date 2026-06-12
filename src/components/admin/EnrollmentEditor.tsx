@@ -8,6 +8,7 @@
 import React, { useState, useTransition } from "react";
 import Link from "next/link";
 import { Icons } from "@/components/shared/Icons";
+import { DateField } from "@/components/shared/DateField";
 import { assignCourse, unassignCourse, ActionResult } from "@/app/admin-actions";
 import type { EnrollmentEditorData } from "@/lib/types";
 
@@ -73,9 +74,9 @@ function EnrollmentRow({ row, userId, onError }: {
       </td>
       <td>
         <div className="enr-row-dates">
-          <span className="enr-date"><input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} /></span>
+          <DateField value={startDate} onChange={setStartDate} />
           <span style={{ color: "var(--ink-4)" }}>〜</span>
-          <span className="enr-date"><input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} /></span>
+          <DateField value={endDate} onChange={setEndDate} />
         </div>
         {mismatch && (
           <div style={{ marginTop: 6, fontSize: 11.5, fontWeight: 600, color: "#C92A2A", display: "flex", alignItems: "center", gap: 5 }}>

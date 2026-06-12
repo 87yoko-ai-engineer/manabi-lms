@@ -50,6 +50,7 @@ export const Icons = {
   filter: (p?: IconProps) => <Ic {...p} d="M3 5h18l-7 8v5l-4 2v-7z" />,
   x: (p?: IconProps) => <Ic {...p} d={["M6 6l12 12", "M18 6 6 18"]} />,
   menu: (p?: IconProps) => <Ic {...p} d={["M4 6h16", "M4 12h16", "M4 18h16"]} />,
+  calendar: (p?: IconProps) => <Ic {...p} d={["M4 6.5A1.5 1.5 0 0 1 5.5 5h13A1.5 1.5 0 0 1 20 6.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19.5z", "M8 3v4", "M16 3v4", "M4 10h16"]} />,
   sparkle: (p?: IconProps) => <Ic {...p} d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" fill />,
   award: (p?: IconProps) => <Ic {...p} d={["M12 15a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z", "M8.5 13.5 7 22l5-3 5 3-1.5-8.5"]} />,
 };
