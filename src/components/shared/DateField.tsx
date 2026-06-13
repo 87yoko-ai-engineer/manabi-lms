@@ -84,6 +84,7 @@ export function DateField({ value, onChange, yearRange }: {
                   type="button"
                   key={d}
                   className={"datef-day" + (v === value ? " is-sel" : "") + (v === todayStr ? " is-today" : "")}
+                  aria-label={`${ym.y}年${ym.m}月${d}日`}
                   onClick={() => { onChange(v); setOpen(false); }}
                 >
                   {d}

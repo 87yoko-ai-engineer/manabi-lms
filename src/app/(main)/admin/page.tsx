@@ -83,7 +83,8 @@ export default async function AdminDashboardPage() {
             <thead>
               <tr>
                 <th className="mx-name">受講者</th>
-                {courseStats.map((c) => <th key={c.id} className="mx-course"><span className="mx-dot" style={{ background: c.accent }} />{c.coverLabel}</th>)}
+                {/* UX-7: 略称だけでは何の講座か分からないため、ホバーで講座名を表示(凡例は表の下) */}
+                {courseStats.map((c) => <th key={c.id} className="mx-course" title={c.title}><span className="mx-dot" style={{ background: c.accent }} />{c.coverLabel}</th>)}
                 <th className="mx-avg">平均</th>
                 <th></th>
               </tr>
@@ -116,6 +117,15 @@ export default async function AdminDashboardPage() {
             </tbody>
           </table>
         </DragScroll>
+        </div>
+        {/* UX-7: 列ヘッダー略称の凡例(ツールチップが使えないタッチ端末でも分かるように) */}
+        <div className="mx-legend">
+          {courseStats.map((c) => (
+            <span className="mx-leg" key={c.id}>
+              <span className="mx-dot" style={{ background: c.accent }} />
+              <b>{c.coverLabel}</b> = {c.title}
+            </span>
+          ))}
         </div>
       </section>
     </div>

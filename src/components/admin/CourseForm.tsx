@@ -10,11 +10,18 @@ import { DateField } from "@/components/shared/DateField";
 import { createCourse, updateCourse, CourseInput } from "@/app/admin-actions";
 import type { AdminCourseEdit } from "@/lib/types";
 
-const ACCENTS = ["#3B5BDB", "#1098AD", "#0CA678", "#E8590C", "#6741D9"];
+/** テーマカラー候補。日本語名はスクリーンリーダー・ツールチップ用(UX-8) */
+const ACCENTS: { value: string; label: string }[] = [
+  { value: "#3B5BDB", label: "ブルー" },
+  { value: "#1098AD", label: "ティール" },
+  { value: "#0CA678", label: "グリーン" },
+  { value: "#E8590C", label: "オレンジ" },
+  { value: "#6741D9", label: "パープル" },
+];
 
 const EMPTY: CourseInput = {
   title: "", subtitle: "", category: "", tag: "任意", description: "",
-  goals: [], publishStart: "", publishEnd: "", accent: ACCENTS[0], coverLabel: "",
+  goals: [], publishStart: "", publishEnd: "", accent: ACCENTS[0].value, coverLabel: "",
 };
 
 export function CourseForm({ course }: { course?: AdminCourseEdit }) {
@@ -96,7 +103,9 @@ export function CourseForm({ course }: { course?: AdminCourseEdit }) {
           <span style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: "var(--ink-2)", marginBottom: 7 }}>テーマカラー</span>
           <div className="sw-row">
             {ACCENTS.map((a) => (
-              <button type="button" key={a} className={"tw-sw" + (form.accent === a ? " is-on" : "")} style={{ background: a }} onClick={() => set("accent", a)} />
+              <button type="button" key={a.value} className={"tw-sw" + (form.accent === a.value ? " is-on" : "")} style={{ background: a.value }}
+                title={a.label} aria-label={`テーマカラー: ${a.label}`} aria-pressed={form.accent === a.value}
+                onClick={() => set("accent", a.value)} />
             ))}
             <span
               className="cover-preview"

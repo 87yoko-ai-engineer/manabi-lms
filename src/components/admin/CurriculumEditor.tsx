@@ -97,10 +97,10 @@ function ChapterEditor({ chapter, index, total, onError }: {
           {pending && title === chapter.title && <span className="spinner sm" style={{ marginRight: 4, color: "var(--brand)" }} />}
           {/* 並び替えはチャプターが2つ以上あるときだけ意味を持つ(1つだけなら出さない) */}
           {total > 1 && <>
-            <button className="ed-ibtn" title="上へ移動" disabled={pending || index === 0} onClick={() => run(() => moveChapter(chapter.id, "up"))}><Icons.chevDown size={17} style={{ transform: "rotate(180deg)" }} /></button>
-            <button className="ed-ibtn" title="下へ移動" disabled={pending || index === total - 1} onClick={() => run(() => moveChapter(chapter.id, "down"))}><Icons.chevDown size={17} /></button>
+            <button className="ed-ibtn" title="上へ移動" aria-label="チャプターを上へ移動" disabled={pending || index === 0} onClick={() => run(() => moveChapter(chapter.id, "up"))}><Icons.chevDown size={17} style={{ transform: "rotate(180deg)" }} /></button>
+            <button className="ed-ibtn" title="下へ移動" aria-label="チャプターを下へ移動" disabled={pending || index === total - 1} onClick={() => run(() => moveChapter(chapter.id, "down"))}><Icons.chevDown size={17} /></button>
           </>}
-          <button className="ed-ibtn danger" title="チャプターを削除" disabled={pending} onClick={() => {
+          <button className="ed-ibtn danger" title="チャプターを削除" aria-label="チャプターを削除" disabled={pending} onClick={() => {
             if (confirm(`「${chapter.title}」を削除しますか?\n配下のユニットと受講者の完了記録も削除されます。`)) run(() => deleteChapter(chapter.id));
           }}><Icons.x size={16} /></button>
         </div>
@@ -171,10 +171,10 @@ function UnitEditor({ unit, index, total, onError }: {
         )}
         {/* 並び替えはユニットが2つ以上あるときだけ表示(1つだけなら意味がない) */}
         {total > 1 && <>
-          <button className="ed-ibtn" title="上へ移動" disabled={pending || index === 0} onClick={() => run(() => moveUnit(unit.id, "up"))}><Icons.chevDown size={16} style={{ transform: "rotate(180deg)" }} /></button>
-          <button className="ed-ibtn" title="下へ移動" disabled={pending || index === total - 1} onClick={() => run(() => moveUnit(unit.id, "down"))}><Icons.chevDown size={16} /></button>
+          <button className="ed-ibtn" title="上へ移動" aria-label="ユニットを上へ移動" disabled={pending || index === 0} onClick={() => run(() => moveUnit(unit.id, "up"))}><Icons.chevDown size={16} style={{ transform: "rotate(180deg)" }} /></button>
+          <button className="ed-ibtn" title="下へ移動" aria-label="ユニットを下へ移動" disabled={pending || index === total - 1} onClick={() => run(() => moveUnit(unit.id, "down"))}><Icons.chevDown size={16} /></button>
         </>}
-        <button className="ed-ibtn danger" title="ユニットを削除" disabled={pending} onClick={() => {
+        <button className="ed-ibtn danger" title="ユニットを削除" aria-label="ユニットを削除" disabled={pending} onClick={() => {
           if (confirm(`「${unit.title}」を削除しますか?\n受講者の完了記録も削除されます。`)) run(() => deleteUnit(unit.id));
         }}><Icons.x size={15} /></button>
       </div>
