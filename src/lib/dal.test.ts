@@ -79,9 +79,9 @@ describe("getCourseDetail の認可(割当チェック)", () => {
     const result = await getCourseDetail("c-1", "u-enrolled");
 
     expect(result).not.toBeNull();
-    expect(result!.id).toBe("c-1");
-    expect(result!.pct).toBe(50); // 2ユニット中1完了
-    expect(result!.access.viewable).toBe(true);
+    expect(result?.id).toBe("c-1");
+    expect(result?.pct).toBe(50); // 2ユニット中1完了
+    expect(result?.access.viewable).toBe(true);
   });
 
   it("存在しない講座IDには null を返す", async () => {

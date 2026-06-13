@@ -223,7 +223,13 @@ export function enrolledCourses(userId: string): Course[] {
 
 // ---- 初期 UnitProgress (受講者 × 完了ユニット) -------------
 function buildInitialProgress(): Record<string, string[]> {
-  const all = (courseId: string) => courseUnitIds(findCourse(courseId)!);
+  // デモデータ内の参照なので必ず見つかる想定だが、IDのタイプミスを
+  // 黙ってundefinedにせず、その場で気づけるようエラーにする(L-1)
+  const all = (courseId: string) => {
+    const course = findCourse(courseId);
+    if (!course) throw new Error(`デモデータ不整合: 講座 ${courseId} が存在しません`);
+    return courseUnitIds(course);
+  };
   const firstN = (courseId: string, n: number) => all(courseId).slice(0, n);
   return {
     // 佐藤(A): c-1 全完了、c-2 を 2/3(受講中)

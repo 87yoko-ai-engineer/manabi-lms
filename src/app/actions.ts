@@ -49,7 +49,11 @@ export async function toggleUnitProgress(unitId: string): Promise<ActionResult> 
     await prisma.unitProgress.create({ data: { userId, unitId } });
   }
 
-  revalidatePath("/", "layout"); // 一覧・詳細・ダッシュボードの進捗表示を更新
+  // L-4: 進捗トグルは学習中に何度も押される高頻度操作なので、
+  // アプリ全体ではなく「進捗が表示されるページ」に絞って再検証する
+  revalidatePath("/");                               // 受講者ホーム(講座カード・修了状況サマリー)
+  revalidatePath(`/courses/${course.id}`, "layout"); // この講座の詳細と配下のユニット視聴ページ
+  revalidatePath("/admin", "layout");                // 管理側の集計(ダッシュボード・受講者詳細)
   return { ok: true };
 }
 

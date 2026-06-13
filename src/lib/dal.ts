@@ -214,8 +214,10 @@ export async function getAdminDashboard(): Promise<AdminDashboardDTO> {
 
   const doneByUser = new Map<string, Set<string>>();
   for (const p of progress) {
-    if (!doneByUser.has(p.userId)) doneByUser.set(p.userId, new Set());
-    doneByUser.get(p.userId)!.add(p.unitId);
+    // 「なければ作って入れる」を ?? で表現(L-1: 非nullアサーションを使わない)
+    const set = doneByUser.get(p.userId) ?? new Set<string>();
+    set.add(p.unitId);
+    doneByUser.set(p.userId, set);
   }
   const courseUnits = new Map(courses.map((c) => [c.id, c.chapters.flatMap((ch) => ch.units.map((u) => u.id))]));
   const isEnrolled = (userId: string, courseId: string) =>

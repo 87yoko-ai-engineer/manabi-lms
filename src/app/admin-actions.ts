@@ -2,6 +2,11 @@
 // ============================================================
 // Manabi LMS — 管理者用 Server Actions (ADM-01〜04)
 // すべてのアクションでサーバー側の管理者ロール検証を行う(AUTH-03/非機能要件)
+//
+// revalidatePath("/", "layout")(全体再検証)のままにしている理由(L-4):
+// 管理CRUDは低頻度な上、講座名などは受講者ホーム・講座詳細・管理画面の
+// すべてに表示されるため、絞り込む利益が薄い。高頻度な進捗トグル
+// (actions.ts)のみページ単位に絞っている。
 // ============================================================
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
@@ -101,36 +106,46 @@ export interface CourseInput {
   coverLabel: string;
 }
 
-function validateCourse(input: CourseInput): string | null {
-  if (!input.title.trim()) return "タイトルを入力してください";
-  if (!input.category.trim()) return "カテゴリを入力してください";
-  if (!input.publishStart) return "公開開始日を入力してください";
-  if (!input.publishEnd) return "公開終了日を入力してください";
+/**
+ * 検証に通ったらパース済みの公開期間も一緒に返す。
+ * 呼び出し側で parseDateInput(...)! と再パースする必要がなくなり、
+ * 非nullアサーション(!)を排除できる(L-1)
+ */
+type CourseValidation =
+  | { ok: false; error: string }
+  | { ok: true; publishStart: Date; publishEnd: Date };
+
+function validateCourse(input: CourseInput): CourseValidation {
+  const fail = (error: string): CourseValidation => ({ ok: false, error });
+  if (!input.title.trim()) return fail("タイトルを入力してください");
+  if (!input.category.trim()) return fail("カテゴリを入力してください");
+  if (!input.publishStart) return fail("公開開始日を入力してください");
+  if (!input.publishEnd) return fail("公開終了日を入力してください");
   const ps = parseDateInput(input.publishStart);
   const pe = parseDateInput(input.publishEnd);
-  if (!ps || !pe) return "公開期間の日付形式が不正です";
-  if (ps > pe) return "公開終了日は公開開始日以降にしてください";
+  if (!ps || !pe) return fail("公開期間の日付形式が不正です");
+  if (ps > pe) return fail("公開終了日は公開開始日以降にしてください");
   const lenErr =
     tooLong("タイトル", input.title.trim(), MAX.title) ??
     tooLong("サブタイトル", input.subtitle.trim(), MAX.subtitle) ??
     tooLong("カテゴリ", input.category.trim(), MAX.category) ??
     tooLong("説明", input.description.trim(), MAX.description) ??
     tooLong("カバーラベル", input.coverLabel.trim(), MAX.coverLabel);
-  if (lenErr) return lenErr;
-  if (input.goals.length > MAX.goalsCount) return `学習目標は${MAX.goalsCount}件以内にしてください`;
+  if (lenErr) return fail(lenErr);
+  if (input.goals.length > MAX.goalsCount) return fail(`学習目標は${MAX.goalsCount}件以内にしてください`);
   for (const g of input.goals) {
     const err = tooLong("学習目標", g.trim(), MAX.goal);
-    if (err) return err;
+    if (err) return fail(err);
   }
-  if (!isHexColor(input.accent)) return "テーマカラーの形式が不正です";
-  return null;
+  if (!isHexColor(input.accent)) return fail("テーマカラーの形式が不正です");
+  return { ok: true, publishStart: ps, publishEnd: pe };
 }
 
 export async function createCourse(input: CourseInput): Promise<ActionResult> {
   const guard = await requireAdmin();
   if (guard) return guard;
-  const err = validateCourse(input);
-  if (err) return { ok: false, error: err };
+  const v = validateCourse(input);
+  if (!v.ok) return v;
 
   const course = await prisma.course.create({
     data: {
@@ -140,8 +155,8 @@ export async function createCourse(input: CourseInput): Promise<ActionResult> {
       tag: input.tag === "必須" ? "必須" : "任意",
       description: input.description.trim(),
       goals: input.goals.map((g) => g.trim()).filter(Boolean),
-      publishStart: parseDateInput(input.publishStart)!,
-      publishEnd: parseDateInput(input.publishEnd)!,
+      publishStart: v.publishStart,
+      publishEnd: v.publishEnd,
       accent: input.accent,
       cover: coverOf(input.accent),
       coverLabel: input.coverLabel.trim().toUpperCase() || input.title.trim().slice(0, 3).toUpperCase(),
@@ -154,8 +169,8 @@ export async function createCourse(input: CourseInput): Promise<ActionResult> {
 export async function updateCourse(courseId: string, input: CourseInput): Promise<ActionResult> {
   const guard = await requireAdmin();
   if (guard) return guard;
-  const err = validateCourse(input);
-  if (err) return { ok: false, error: err };
+  const v = validateCourse(input);
+  if (!v.ok) return v;
 
   await prisma.course.update({
     where: { id: courseId },
@@ -166,8 +181,8 @@ export async function updateCourse(courseId: string, input: CourseInput): Promis
       tag: input.tag === "必須" ? "必須" : "任意",
       description: input.description.trim(),
       goals: input.goals.map((g) => g.trim()).filter(Boolean),
-      publishStart: parseDateInput(input.publishStart)!,
-      publishEnd: parseDateInput(input.publishEnd)!,
+      publishStart: v.publishStart,
+      publishEnd: v.publishEnd,
       accent: input.accent,
       cover: coverOf(input.accent),
       coverLabel: input.coverLabel.trim().toUpperCase(),
